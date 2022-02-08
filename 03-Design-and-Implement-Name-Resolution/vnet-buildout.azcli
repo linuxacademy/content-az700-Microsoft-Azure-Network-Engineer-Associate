@@ -1,12 +1,21 @@
 # For playgrounds, create resource group variable. Comment first line out if using in own tenant.
 # If using own tenant with multiple resource group, you MUST create a resource group variable with following command:
 # rg=your-resource-group-here
+# You will also need to substitute your own resource group location instead of 
+# the location variable used for playground resource groups
+
+# Get resource group and set to variable $rg
 
 rg=$(az group list --query '[].name' -o tsv)
 
+# Assign location variable to playground resource group location
+
+location=$(az group list --query '[].location' -o tsv)
+
+
 # Create Virtual Network and subnet
 
-az network vnet create --name cake-hub-vnet --resource-group $rg --location centralus --address-prefixes 10.0.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.0.1.0/24
+az network vnet create --name cake-hub-vnet --resource-group $rg --location $location --address-prefixes 10.0.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.0.1.0/24
 
 # Create two Linux machines. We will not need to interact with the machines, just generate IP/DNS info
 

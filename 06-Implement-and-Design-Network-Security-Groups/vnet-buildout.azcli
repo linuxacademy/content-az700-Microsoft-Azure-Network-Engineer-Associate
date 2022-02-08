@@ -1,0 +1,11 @@
+# For playgrounds, create resource group variable. Comment first line out if using in own tenant.
+# If using own tenant with multiple resource group, you MUST create a resource group variable with following command:
+# rg=your-resource-group-here
+
+rg=$(az group list --query '[].name' -o tsv)
+
+az network vnet create --name cake-hub-vnet --resource-group $rg --location centralus --address-prefixes 10.1.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.1.1.0/24
+
+az vm create --resource-group $rg --name vm-1 --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-vm1 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
+
+az vm create --resource-group $rg --name vm-2 --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-vm2 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait

@@ -13,33 +13,17 @@
 # Exported Template Location: The scripts will be exported for each resource group to your local working directory
 ###############################
 
-# For loop to iterate through all resource groups in a subscription
-for resource in $(az group list --query "[].{Name:name}" -o json | jq -r '.[].Name'); do
-    # print out resource group name - uncomment for testing
-    # echo "Resource group: $resource"
 
-    # Export all resources in the resource group that is going to be deleted - this is your safety net should you misuse this script
-    az group export --name $resource -o json > $resource.json
-    echo "Exported resources in $resource to $resource.json"
-    
-    # Some if/then logic to provide you a way out before the deletion begins
-    echo ""
-    echo "WARNING: You are about delete resources!!!"
-    read -p "Do you wish to proceed? (y/n) " -n 1 -r
-    echo ""
+# Set variables
+rg=`az group list --query '[].name' -o tsv`
+location=`az group list --query '[].location' -o tsv`
 
-    # Evaluate user input before proceeding with deletion
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        # Destroy all resources in the resource group and the resource group itself - this is where the deletion of all resource groups and their resources begins
-        echo "Deleting $resource"
-        az group delete --name $resource --yes
-    
-    elif [[ $REPLY =~ ^[Nn]$ ]]; then
-        exit
-    
-    else
-        echo "Invalid input. Exiting..."
-    
-    fi
-    
+# Iterate through all resources from a resource group defined by our rg variable
+for resource in `az group list-resources --resource-group $rg --query '[].name' -o tsv`
+do
+    # Print out resource - uncomment for testing
+    echo "Deleting $resource"
+
+    # Export resource as an ARM template
+    az resource export --resource-group $rg --name $resource --query 'properties.outputs' -o tsv > $resource.json
 done

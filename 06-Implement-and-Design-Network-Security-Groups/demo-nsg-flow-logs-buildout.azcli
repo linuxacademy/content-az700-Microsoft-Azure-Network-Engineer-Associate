@@ -55,7 +55,7 @@ az network vnet create --name cake-spoke1-vnet --resource-group $rg --location $
 az network nsg create -g $rg -n cake-spoke1-nsg-01
 
 # Associate nsg-01 with subnet-01 in spoke 1 hub vnet
-az network vnet subnet update --resource-group $rg --vnet-name cake-spoke1-vnet --name spok1-subnet-01 --network-security-group cake-spoke1-nsg-01
+az network vnet subnet update --resource-group $rg --vnet-name cake-spoke1-vnet --name spoke1-subnet-01 --network-security-group cake-spoke1-nsg-01
 
 # Create vm-1 in spoke 1 vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-spoke1-vm-01 --image UbuntuLTS --generate-ssh-keys --public-ip-address cake-spoke1-pip-01 --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke1-subnet-01 --nsg cake-hub-nsg-01 --size Standard_B1s --no-wait

@@ -26,6 +26,7 @@ for resource in $(az group list --query "[].{Name:name}" -o json | jq -r '.[].Na
     echo ""
     echo "WARNING: You are about delete resources!!!"
     read -p "Do you wish to proceed? (y/n) " -n 1 -r
+    echo ""
 
     # Evaluate user input before proceeding with deletion
     if [[ $REPLY =~ ^[Yy]$ ]]; then

@@ -29,6 +29,7 @@ $location = az group list --query '[].location' -o tsv
 ####### START - SCRIPT #######
 ##############################
 
+
 ## SETUP MAIN HUB VNET
 # Create main hub vnet
 az network vnet create --name cake-hub-vnet --resource-group $rg --location $location --address-prefixes 10.60.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.60.0.0/24

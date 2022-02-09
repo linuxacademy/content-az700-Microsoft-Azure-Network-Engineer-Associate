@@ -10,6 +10,7 @@
 # location=your-location-here
 ###############################
 
+
 ##############################
 ##### START - VARIABLES ######
 ##############################
@@ -39,11 +40,6 @@ az vm create --resource-group $rg --location $location --name cake-hub-vm-01 --i
 # Create vm-2 in main hub vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-hub-vm-02 --image UbuntuLTS --generate-ssh-keys --public-ip-address cake-hub-pip-02 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
 
-# Create nsg-01
-az network nsg create -g $rg -n cake-hub-nsg-01
-
-# Associate nsg-01 with subnet-01 in main hub vnet
-az network vnet subnet update --resource-group $rg --vnet-name cake-hub-vnet --name cake-hub-nsg-01
 
 ## SETUP SPOKE 1 VNET
 # Create spoke 1 vnet
@@ -65,6 +61,15 @@ az vm create --resource-group $rg --location $location --name cake-spoke2-vm-01 
 
 # Create vm-2 in spoke 2 vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-spoke2-vm-02 --image UbuntuLTS --generate-ssh-keys --public-ip-address cake-spoke2-pip-02 --public-ip-sku Standard --vnet-name cake-spoke2-vnet --subnet spoke2-subnet-01 --size Standard_B1s --no-wait
+
+
+## Additional Resource Setup
+# Create nsg-01
+az network nsg create -g $rg -n cake-hub-nsg-01
+
+# Associate nsg-01 with subnet-01 in main hub vnet
+az network vnet subnet update --resource-group $rg --vnet-name cake-hub-vnet --name cake-hub-nsg-01
+
 
 ##############################
 ######## END - SCRIPT ########

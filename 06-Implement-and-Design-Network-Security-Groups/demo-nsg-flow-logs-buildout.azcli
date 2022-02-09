@@ -1,6 +1,15 @@
-# For playgrounds, create resource group variable. Comment first line out if using in own tenant.
-# If using own tenant with multiple resource group, you MUST create a resource group variable with following command:
+###############################
+####### SCRIPT DETAILS ########
+# Intended Purpose: Setup environment for ACG Azure Cloud Sandbox
+# Disclaimer: This script is intended to be used only in the ACG Azure Cloud Playground/Sandbox
+# Message: To use this script for non-ACG Azure Cloud Sandbox environments
+#       1.) Create your own resource group variable.
+#       2.) Comment out variable in variables section.
+#       3.) Uncomment below commands and assign your own resource group and location.
 # rg=your-resource-group-here
+# location=your-location-here
+###############################
+
 
 ##############################
 ##### START - VARIABLES ######

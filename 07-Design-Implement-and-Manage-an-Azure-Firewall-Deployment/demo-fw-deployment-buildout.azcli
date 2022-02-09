@@ -99,8 +99,8 @@ az vm create --resource-group $rg --location $location --name cake-spoke2-vm-02 
 
 ## CREATE PEERING CONNECTIONS
 # Create peering connection between hub-vnet and spoke1-vnet
-az network vnet peering create --resource-group $rg --name hub-to-spoke1-peering --vnet-name cake-hub-vnet-01 --remote-vnet cake-spoke1-vnet-01 --allow-vnet-access --allow-forwarded-traffic
-az network vnet peering create --resource-group $rg --name spoke1-to-hub-peering --vnet-name cake-spoke1-vnet-01 --remote-vnet cake-hub-vnet-01 --allow-vnet-access --allow-forwarded-traffic
+az network vnet peering create --resource-group $rg --name hub-to-spoke1-peering --vnet-name cake-hub-vnet --remote-vnet cake-spoke1-vnet --allow-vnet-access --allow-forwarded-traffic
+az network vnet peering create --resource-group $rg --name spoke1-to-hub-peering --vnet-name cake-spoke1-vnet --remote-vnet cake-hub-vnet --allow-vnet-access --allow-forwarded-traffic
 
 ##############################
 ######## END - SCRIPT ########

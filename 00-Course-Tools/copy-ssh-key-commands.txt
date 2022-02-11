@@ -1,0 +1,2 @@
+# This command will copy over the private portion of the ssh key locally into the remote host specified below. Please feel substitute your own host_ip and host_port
+rsync -avz -e "ssh -i .ssh/id_rsa -p host_port" --progress .ssh/id_rsa azureuser@host_ip:/home/azureuser/.ssh

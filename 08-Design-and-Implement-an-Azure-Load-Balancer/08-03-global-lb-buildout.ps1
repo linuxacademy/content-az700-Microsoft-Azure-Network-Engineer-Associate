@@ -107,18 +107,18 @@ az vmss create --name cake-test-vmss-01 --resource-group $rg --image UbuntuLTS -
 # Create subnet in VNet for internal LB and its backend pool of VMSS
 az network vnet subnet create --name hub-subnet-02 --vnet-name cake-hub-vnet --resource-group $rg --address-prefixes 10.60.1.0/24
 
+# Create the internal LB and its backend pool of VMSS in the specified vnet and subnet without public ip address connectivity
+az vmss create --name cake-test-vmss-02 --resource-group $rg --image UbuntuLTS --custom-data ./cloud-init.txt --lb cake-test-lb-02 --lb-sku Basic --vnet-name cake-hub-vnet --subnet hub-subnet-02 --public-ip-address '""' --admin-username azureuser --generate-ssh-keys
+
 # Create nsg-02 for the hub-subnet-02 because the internal lb will be a standard sku so it is secure by default
-az network nsg create -g $rg -n cake-hub-nsg-02
+# az network nsg create -g $rg -n cake-hub-nsg-02
 
 # Associate nsg-02 with subnet-02 in main hub vnet
-az network vnet subnet update --resource-group $rg --vnet-name cake-hub-vnet --name hub-subnet-02 --network-security-group cake-hub-nsg-02
+# az network vnet subnet update --resource-group $rg --vnet-name cake-hub-vnet --name hub-subnet-02 --network-security-group cake-hub-nsg-02
 
 # Create nsg-02 rules allow SSH|HTTP from Anywhere
-az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-02 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-02 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
-
-# Create the internal LB and its backend pool of VMSS in the specified vnet and subnet without public ip address connectivity
-az vmss create --name cake-test-vmss-02 --resource-group $rg --image UbuntuLTS --custom-data ./cloud-init.txt --lb cake-test-lb-02 --lb-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-02 --nsg cake-hub-nsg-02 --public-ip-address '""' --admin-username azureuser --generate-ssh-keys
+# az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-02 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
+# az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-02 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
 
 # Create lb rule to allow acces for HTTP to backend webservers in VMSS for internal lb
 # az network lb rule create --resource-group $rg --lb-name cake-test-lb-02 --name wslbrule --protocol Tcp --frontend-ip-name loadBalancerFrontEnd --backend-pool-name cake-test-lb-02BEPool --frontend-port 80 --backend-port 80

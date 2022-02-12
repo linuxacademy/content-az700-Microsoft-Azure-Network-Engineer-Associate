@@ -127,6 +127,8 @@ az vmss create --name cake-test-vmss-02 --resource-group $rg --image UbuntuLTS -
 $global:extLbIp = az network public-ip show -g $rg -n cake-test-lb-01PublicIP --query 'ipAddress' -o tsv
 $extLbIp
 $global:extlbsshports = az network lb show -g $rg -n cake-test-lb-01 --query "inboundNatRules[*].frontendPort"
+$global:intlbsshports = az network lb show -g $rg -n cake-test-lb-02 --query "inboundNatRules[*].frontendPort"
+$intlbsshports
 $extlbsshports
 $rg
 $location

@@ -16,10 +16,10 @@
 ##############################
 
 # Get resource group and set to variable $rg
-$rg = az group list --query '[].name' -o tsv
+$global:rg = az group list --query '[].name' -o tsv
 
 # Assign location variable to playground resource group location
-$location = az group list --query '[].location' -o tsv
+$global:location = az group list --query '[].location' -o tsv
 
 ##############################
 ##### END - VARIABLES ######
@@ -122,6 +122,14 @@ az vmss create --name cake-test-vmss-02 --resource-group $rg --image UbuntuLTS -
 
 # Create lb rule to allow acces for HTTP to backend webservers in VMSS for internal lb
 # az network lb rule create --resource-group $rg --lb-name cake-test-lb-02 --name wslbrule --protocol Tcp --frontend-ip-name loadBalancerFrontEnd --backend-pool-name cake-test-lb-02BEPool --frontend-port 80 --backend-port 80
+
+## RETURN RESOURCE INFORMATION TO CLOUD SHELL
+$global:extLbIp = az network public-ip show -g $rg -n cake-test-lb-01PublicIP --query 'ipAddress' -o tsv
+$extLbIp
+$global:extlbsshports = az network lb show -g $rg -n cake-test-lb-01 --query "inboundNatRules[*].frontendPort"
+$extlbsshports
+$rg
+$location
 
 ##############################
 ######## END - SCRIPT ########

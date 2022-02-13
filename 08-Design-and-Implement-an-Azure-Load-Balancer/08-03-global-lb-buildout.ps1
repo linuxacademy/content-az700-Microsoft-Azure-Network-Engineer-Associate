@@ -121,17 +121,16 @@ az vmss create --name cake-test-vmss-02 --resource-group $rg --image UbuntuLTS -
 # az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-02 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
 
 # Create lb rule to allow acces for HTTP to backend webservers in VMSS for internal lb
-# az network lb rule create --resource-group $rg --lb-name cake-test-lb-02 --name wslbrule --protocol Tcp --frontend-ip-name loadBalancerFrontEnd --backend-pool-name cake-test-lb-02BEPool --frontend-port 80 --backend-port 80
+az network lb rule create --resource-group $rg --lb-name cake-test-lb-02 --name wslbrule --protocol Tcp --frontend-ip-name loadBalancerFrontEnd --backend-pool-name cake-test-lb-02BEPool --frontend-port 80 --backend-port 80
 
 ## RETURN RESOURCE INFORMATION TO CLOUD SHELL
 $global:extLbIp = az network public-ip show -g $rg -n cake-test-lb-01PublicIP --query 'ipAddress' -o tsv
-$extLbIp
 $global:extlbsshports = az network lb show -g $rg -n cake-test-lb-01 --query "inboundNatRules[*].frontendPort"
 $global:intlbsshports = az network lb show -g $rg -n cake-test-lb-02 --query "inboundNatRules[*].frontendPort"
-$intlbsshports
-$extlbsshports
-$rg
-$location
+echo "Public LB IP: $extLbIp"
+echo "Public LB SSH Ports: $extlbsshports"
+echo "Internal LB SSH Ports: $intlbsshports"
+
 
 ##############################
 ######## END - SCRIPT ########

@@ -1,0 +1,5 @@
+# These commands will be used to setup demos and pull down scripts from GitHub - Copy/Paste the below commands into Cloud Shell PowerShell Environment
+
+curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/08-Design-and-Implement-an-Azure-Load-Balancer/08-load-balancer-buildout.ps1 -o setup.ps1
+. ./setup.ps1
+

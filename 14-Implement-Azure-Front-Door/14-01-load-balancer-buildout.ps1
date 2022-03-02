@@ -18,9 +18,10 @@
 # Get resource group and set to variable $rg
 $rg = az group list --query '[].name' -o tsv
 
-# Assign location variable to playground resource group location
+# Assign location variable
 $location = az group list --query '[].location' -o tsv
-
+$hublocation = "southcentralus"
+$spoke1location = "eastus2"
 ##############################
 ##### END - VARIABLES ######
 ##############################
@@ -36,10 +37,10 @@ curl https://raw.githubusercontent.com/mrcloudchase/Azure/master/cloud-init.txt 
 
 ## SETUP MAIN HUB VNET
 # Create main hub vnet
-az network vnet create --name cake-hub-vnet --resource-group $rg --location $location --address-prefixes 10.60.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.60.0.0/24
+az network vnet create --name cake-hub-vnet --resource-group $rg --location $hublocation --address-prefixes 10.60.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.60.0.0/24
 
 # Create nsg-01
-az network nsg create -g $rg -n cake-hub-nsg-01
+az network nsg create -g $rg -l $hublocation -n cake-hub-nsg-01
 
 # Associate nsg-01 with subnet-01 in main hub vnet
 az network vnet subnet update --resource-group $rg --vnet-name cake-hub-vnet --name hub-subnet-01 --network-security-group cake-hub-nsg-01
@@ -49,18 +50,18 @@ az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-01 --nam
 az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-01 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
 
 # Create vm-1 in main hub vnet subnet-01
-az vm create --resource-group $rg --location $location --name cake-hub-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-hub-pip-01 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --nsg cake-hub-nsg-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --location $hublocation --name cake-hub-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-hub-pip-01 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --nsg cake-hub-nsg-01 --size Standard_B1s --no-wait
 
 # Create vm-2 in main hub vnet subnet-01
-az vm create --resource-group $rg --location $location --name cake-hub-vm-02 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-hub-pip-02 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --nsg cake-hub-nsg-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --location $hublocation --name cake-hub-vm-02 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-hub-pip-02 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --nsg cake-hub-nsg-01 --size Standard_B1s --no-wait
 
 
 ## SETUP SPOKE 1 VNET
 # Create spoke 1 vnet
-az network vnet create --name cake-spoke1-vnet --resource-group $rg --location $location  --address-prefixes 10.120.0.0/16 --subnet-name spoke1-subnet-01 --subnet-prefix 10.120.0.0/24
+az network vnet create --name cake-spoke1-vnet --resource-group $rg --location $spoke1location  --address-prefixes 10.120.0.0/16 --subnet-name spoke1-subnet-01 --subnet-prefix 10.120.0.0/24
 
 # Create nsg-01
-az network nsg create -g $rg -n cake-spoke1-nsg-01
+az network nsg create -g $rg -l $spoke1location -n cake-spoke1-nsg-01
 
 # Associate nsg-01 with subnet-01 in spoke 1 hub vnet
 az network vnet subnet update --resource-group $rg --vnet-name cake-spoke1-vnet --name spoke1-subnet-01 --network-security-group cake-spoke1-nsg-01
@@ -70,10 +71,10 @@ az network nsg rule create --resource-group $rg --nsg-name cake-spoke1-nsg-01 --
 az network nsg rule create --resource-group $rg --nsg-name cake-spoke1-nsg-01 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
 
 # Create vm-1 in spoke 1 vnet subnet-01
-az vm create --resource-group $rg --location $location --name cake-spoke1-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke1-pip-01 --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke1-subnet-01 --nsg cake-spoke1-nsg-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --location $spoke1location --name cake-spoke1-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke1-pip-01 --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke1-subnet-01 --nsg cake-spoke1-nsg-01 --size Standard_B1s --no-wait
 
 # Create vm-2 in spoke 1 vnet subnet-01
-az vm create --resource-group $rg --location $location --name cake-spoke1-vm-02 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke1-pip-02 --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke1-subnet-01 --nsg cake-spoke1-nsg-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --location $spoke1location --name cake-spoke1-vm-02 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke1-pip-02 --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke1-subnet-01 --nsg cake-spoke1-nsg-01 --size Standard_B1s --no-wait
 
 
 ## SETUP SPOKE 2 VNET
@@ -96,6 +97,22 @@ az vm create --resource-group $rg --location $location --name cake-spoke2-vm-01 
 # Create vm-2 in spoke 2 vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-spoke2-vm-02 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke2-pip-02 --public-ip-sku Standard --vnet-name cake-spoke2-vnet --subnet spoke2-subnet-01 --nsg cake-spoke2-nsg-01 --size Standard_B1s --no-wait
 
+
+## CREATE APPLICATION GATEWAY
+# Create subnet in hub-vnet for App GW
+az network vnet subnet create --address-prefixes 10.60.1.0/24 --name appgwsubnet --resource-group $rg --vnet-name cake-hub-vnet
+
+# Create Application Gateway resource in hub-vnet
+az network application-gateway create -g $rg -l $hublocation -n MyAppGateway1 --capacity 2 --sku Standard_v2 --vnet-name cake-hub-vnet --subnet AppGWSubnet --http-settings-cookie-based-affinity Enabled --public-ip-address MyAppGatewayPublicIp1 --servers 10.60.0.4 10.60.0.5
+
+# Create subnet in spoke1-vnet for App GW
+# Create subnet in hub-vnet for App GW
+az network vnet subnet create --address-prefixes 10.120.1.0/24 --name appgwsubnet --resource-group $rg --vnet-name cake-spoke1-vnet
+
+# Create Application Gateway resource in spoke1-vnet
+az network application-gateway create -g $rg -l $spoke1location -n MyAppGateway2 --capacity 2 --sku Standard_v2 --vnet-name cake-spoke1-vnet --subnet AppGWSubnet --http-settings-cookie-based-affinity Enabled --public-ip-address MyAppGatewayPublicIp2 --servers 10.120.0.4 10.120.0.5
+
+### NEED TO CONFIGURE SSL CERT FOR APP GW TO ALLOW FRONT DOOR TO USE CERT FOR HTTPS
 
 ##############################
 ######## END - SCRIPT ########

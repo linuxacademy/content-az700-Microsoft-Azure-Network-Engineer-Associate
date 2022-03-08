@@ -1,0 +1,4 @@
+# These commands will be used to setup demos and pull down scripts from GitHub - Copy/Paste the below commands into Cloud Shell PowerShell Environment
+
+curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/05-Design-and-Implement-Cross-VNet-Connectivity/05-01-peering-demo-buildout.ps1 -o setup.ps1
+. ./setup.ps1

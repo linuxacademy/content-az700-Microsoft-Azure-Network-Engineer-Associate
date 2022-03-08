@@ -35,11 +35,9 @@ az network vnet create --name cake-hub-vnet --resource-group $rg --location $loc
 
 az network vnet create --name cake-spoke1-vnet --resource-group $rg --location $location --address-prefixes 10.1.0.0/16 --subnet-name spoke-1-subnet-a --subnet-prefix 10.1.1.0/24
 
-az network vnet create --name cake-spoke2-vnet --resource-group $rg --location $location --address-prefixes 10.2.0.0/16 --subnet-name spoke-1-subnet-a --subnet-prefix 10.2.1.0/24
+az network vnet create --name cake-spoke2-vnet --resource-group $rg --location $location --address-prefixes 10.2.0.0/16 --subnet-name spoke-2-subnet-a --subnet-prefix 10.2.1.0/24
 
-# Create three Linux machines. We will not need to interact with the machines,
-# One will act as our virtual appliance in the NVA subnet, the other two will be in the subnet
-# associated with our route table
+# Create three Linux machines. One in each network
 
 az vm create --resource-group $rg --name spoke-1-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-spoke-1-vm --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke-1-subnet-a --size Standard_B1s --no-wait
 

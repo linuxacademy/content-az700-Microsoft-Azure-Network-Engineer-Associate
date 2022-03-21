@@ -9,7 +9,7 @@ Add-AzVirtualNetworkPeering -Name 'hub-spoke2' `
 
 # Note: the spoke2-hub peering will fail because the hub network does not have a gateway to peer to.
 # We are leaving the command as is for learning purposes, 
-# however you will need to remove the 'UseRemoteGateways' open to successfully run it.
+# however you will need to remove the 'UseRemoteGateways' option to successfully run it.
 
 Add-AzVirtualNetworkPeering -Name 'spoke2-hub' `
     -VirtualNetwork $Spoke2Vnet `

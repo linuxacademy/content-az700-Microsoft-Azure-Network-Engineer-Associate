@@ -106,7 +106,7 @@ az network vnet peering create --resource-group $rg --name spoke1-to-hub-peering
 
 # Install extensions without prompt
 $global:setConfig = az config set extension.use_dymanic_install=yes_without_prompt # may work if not already installed - otherwise perform as pre-step before running script
-
+$global:setConfig
 # Create AzureFirewallSubnet for hub-vnet
 az network vnet subnet create --resource-group $rg --vnet-name cake-hub-vnet --name AzureFirewallSubnet --address-prefix 10.60.1.0/26
 

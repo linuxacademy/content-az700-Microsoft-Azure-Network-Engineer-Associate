@@ -32,18 +32,21 @@ $location = az group list --query '[].location' -o tsv
 
 ## SETUP MAIN HUB VNET
 # Create main hub vnet
-az network vnet create --name cake-hub-vnet --resource-group $rg --location $location --address-prefixes 10.60.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.60.0.0/24
+az network vnet create --name "cake-hub-vnet-01" --resource-group $rg --location $location --address-prefixes 10.60.0.0/16 --subnet-name hub-subnet-01 --subnet-prefix 10.60.0.0/24
 
 
 ## SETUP SPOKE 1 VNET
 # Create spoke 1 vnet
-az network vnet create --name cake-spoke1-vnet --resource-group $rg --location $location  --address-prefixes 10.120.0.0/16 --subnet-name spoke1-subnet-01 --subnet-prefix 10.120.0.0/24
+az network vnet create --name "cake-spoke1-vnet-01" --resource-group $rg --location $location  --address-prefixes 10.120.0.0/16 --subnet-name spoke1-subnet-01 --subnet-prefix 10.120.0.0/24
 
 
 ## SETUP SPOKE 2 VNET
 # Create spoke 2 vnet
-az network vnet create --name cake-spoke2-vnet --resource-group $rg --location $location  --address-prefixes 172.32.0.0/16 --subnet-name spoke2-subnet-01 --subnet-prefix 172.32.0.0/24
+az network vnet create --name "cake-spoke2-vnet-01" --resource-group $rg --location $location  --address-prefixes 172.32.0.0/16 --subnet-name spoke2-subnet-01 --subnet-prefix 172.32.0.0/24
 
+
+## CREATE THE VM IN THE HUB VNET
+az vm create --resource-group $rg --name "cake-hub-vm-01" --location $location --vnet-name "cake-hub-vnet-01" --subnet "hub-subnet-01" --image UbuntuLTS --admin-username azureuser --generate-ssh-keys
 
 ##############################
 ######## END - SCRIPT ########

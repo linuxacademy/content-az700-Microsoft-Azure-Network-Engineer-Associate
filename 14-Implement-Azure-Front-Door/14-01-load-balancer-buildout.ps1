@@ -20,8 +20,8 @@ $rg = az group list --query '[].name' -o tsv
 
 # Assign location variable
 $location = az group list --query '[].location' -o tsv
-$hublocation = "southcentralus"
-$spoke1location = "eastus2"
+$hublocation = "westus"
+$spoke1location = "eastus"
 ##############################
 ##### END - VARIABLES ######
 ##############################

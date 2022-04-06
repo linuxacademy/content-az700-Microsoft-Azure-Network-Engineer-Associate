@@ -46,7 +46,7 @@ az network vnet subnet update --resource-group $rg --vnet-name cake-hub-vnet --n
 
 # Create nsg-01 rules allow SSH|HTTP from Anywhere
 az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-01 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-01 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name cake-hub-nsg-01 --name denySsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Deny --protocol Tcp
 
 # Create vm-1 in main hub vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-hub-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-hub-pip-01 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --nsg cake-hub-nsg-01 --size Standard_B1s --no-wait
@@ -67,7 +67,7 @@ az network vnet subnet update --resource-group $rg --vnet-name cake-spoke1-vnet 
 
 # Create nsg-01 rules allow SSH|HTTP from Anywhere
 az network nsg rule create --resource-group $rg --nsg-name cake-spoke1-nsg-01 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name cake-spoke1-nsg-01 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name cake-spoke1-nsg-01 --name denySsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Deny --protocol Tcp
 
 # Create vm-1 in spoke 1 vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-spoke1-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke1-pip-01 --public-ip-sku Standard --vnet-name cake-spoke1-vnet --subnet spoke1-subnet-01 --nsg cake-spoke1-nsg-01 --size Standard_B1s --no-wait
@@ -88,7 +88,7 @@ az network vnet subnet update --resource-group $rg --vnet-name cake-spoke2-vnet 
 
 # Create nsg-01 rules allow SSH|HTTP from Anywhere
 az network nsg rule create --resource-group $rg --nsg-name cake-spoke2-nsg-01 --name allowHttp --priority 110 --destination-port-ranges 80 --source-address-prefixes '*' --access Allow --protocol Tcp
-az network nsg rule create --resource-group $rg --nsg-name cake-spoke2-nsg-01 --name allowSsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Allow --protocol Tcp
+az network nsg rule create --resource-group $rg --nsg-name cake-spoke2-nsg-01 --name denySsh --priority 120 --destination-port-ranges 22 --source-address-prefixes '*' --access Deny --protocol Tcp
 
 # Create vm-1 in spoke 2 vnet subnet-01
 az vm create --resource-group $rg --location $location --name cake-spoke2-vm-01 --image UbuntuLTS --admin-username azureuser --generate-ssh-keys --user-data ./cloud-init.txt --public-ip-address cake-spoke2-pip-01 --public-ip-sku Standard --vnet-name cake-spoke2-vnet --subnet spoke2-subnet-01 --nsg cake-spoke2-nsg-01 --size Standard_B1s --no-wait

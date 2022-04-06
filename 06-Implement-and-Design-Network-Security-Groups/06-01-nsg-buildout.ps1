@@ -50,7 +50,7 @@ az vm create --resource-group $rg --name "cake-hub-vm-01" --location $location -
 
 ## DELETE THE NSG THAT IS CREATED WITH THE VM AND ASSOCIATED WITH THE NIC BY DEFAULT
 $nicName = az vm show -n "cake-hub-vm-01" -g $rg --query 'networkProfile.networkInterfaces[0].id' -o tsv | cut -d'/' -f 9
-$nsgName = az network nic show --name $nicId --resource-group $rg --query networkSecurityGroup.id -o tsv | cut -d'/' -f 9
+$nsgName = az network nic show --name $nicName --resource-group $rg --query 'networkSecurityGroup.id' -o tsv | cut -d'/' -f 9
 $nic = Get-AzNetworkInterface -ResourceGroupName $rg -Name $nicName
 $nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $rg -Name $nsgName
 $nic.NetworkSecurityGroup = $null

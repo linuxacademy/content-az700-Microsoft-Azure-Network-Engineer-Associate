@@ -4,3 +4,4 @@ curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azur
 # Install extensions without prompt
 az config set extension.use_dymanic_install=yes_without_prompt # may work if not already installed - otherwise perform as pre-step before running script
 . ./setup.ps1
+

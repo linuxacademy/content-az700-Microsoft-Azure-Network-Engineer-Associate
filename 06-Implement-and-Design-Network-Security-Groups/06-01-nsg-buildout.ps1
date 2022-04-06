@@ -57,6 +57,12 @@ $nic.NetworkSecurityGroup = $null
 $nic | Set-AzNetworkInterface
 Remove-AzNetworkSecurityGroup -Name $nsgName -ResourceGroupName $rg -Force
 
+
+## PRINT OUT VM PUBLIC IP FOR STUDENTS TO USE
+$publicIp = az vm show -n "cake-hub-vm-01" -g $rg --query 'publicIpAddress' -o tsv
+echo "==============================================================="
+echo "The public IP address of the VM is: $publicIp"
+echo "==============================================================="
 ##############################
 ######## END - SCRIPT ########
 ##############################

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "firewallName": "cake-hub-fw-01",
+    "firewallPolicyName": "[concat(variables('firewallName'), '-policy', uniqueString(resourceGroup().id))]",
+    "location": "[resourceGroup().location]",
+    "numberOfPublicIPAddresses": 1,
+    "virtualNetworkName": "[concat('vnet', uniqueString(resourceGroup().id))]",
+    "vnetAddressPrefix": "10.60.0.0/16",
+    "azureFirewallSubnetPrefix": "10.60.0.0/24",
+    "publicIPNamePrefix": "publicIP",
+    "azurepublicIpname": "[variables('publicIPNamePrefix')]",
+    "azureFirewallSubnetName": "AzureFirewallSubnet",
+    "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('virtualNetworkName'), variables('azureFirewallSubnetName'))]",
+    "azureFirewallPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPNamePrefix'))]",
+    "azureFirewallSubnetJSON": "[json(format('{{\"id\": \"{0}\"}}', variables('azureFirewallSubnetId')))]",
+    "copy": [
+      {
+        "name": "azureFirewallIpConfigurations",
+        "count": "[variables('numberOfPublicIPAddresses')]",
+        "input": {
+          "name": "[concat('IpConf', copyIndex('azureFirewallIpConfigurations'))]",
+          "properties": {
+            "subnet": "[if(equals(copyIndex('azureFirewallIpConfigurations'), 0), variables('azureFirewallSubnetJSON'), json('null'))]",
+            "publicIPAddress": {
+              "id": "[concat(variables('azureFirewallPublicIpId'), add(copyIndex('azureFirewallIpConfigurations'), 1))]"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "resources": [
+    {
+      "name": "[variables('virtualNetworkName')]",
+      "apiVersion": "2019-04-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "[variables('virtualNetworkName')]"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vnetAddressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('azureFirewallSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('azureFirewallSubnetPrefix')]"
+            }
+          }
+        ],
+        "enableDdosProtection": false
+      }
+    },
+    {
+      "name": "[concat(variables('azurepublicIpname'), add(copyIndex(), 1))]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2019-04-01",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4"
+      },
+      "copy": {
+        "name": "publicIpCopy",
+        "count": "[variables('numberOfPublicIPAddresses')]"
+      }
+    },
+    {
+      "apiVersion": "2020-05-01",
+      "type": "Microsoft.Network/firewallPolicies",
+      "name": "[variables('firewallPolicyName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "threatIntelMode": "Alert"
+      }
+    },
+    {
+      "apiVersion": "2019-04-01",
+      "type": "Microsoft.Network/azureFirewalls",
+      "name": "[variables('firewallName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "publicIpCopy",
+        "[resourceId('Microsoft.Network/firewallPolicies',variables('firewallPolicyName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": "[variables('azureFirewallIpConfigurations')]",
+        "firewallPolicy": {
+          "id": "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]"
+        }
+      }
+    }
+  ]
+}

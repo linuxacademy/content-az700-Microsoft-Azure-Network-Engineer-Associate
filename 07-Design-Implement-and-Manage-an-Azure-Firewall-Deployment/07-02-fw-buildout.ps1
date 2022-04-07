@@ -58,12 +58,13 @@ az vm create --resource-group $rg --location $location --name cake-hub-vm-02 --i
 ## CREATE FIREWALL RESOURCES
 # Create hub-firewall-policy
 az network firewall policy create -n hub-fw-policy-01 -g $rg --sku Premium --location $location
+$fwPolicy = az network firewall policy show -n hub-fw-policy-01 -g $rg --query 'id' -o tsv
 
 # Create AzureFirewallSubnet for hub-vnet
 az network vnet subnet create --resource-group $rg --vnet-name cake-hub-vnet --name AzureFirewallSubnet --address-prefix 10.60.1.0/26
 
 # Create cake-hub-firewall-01
-az network firewall create --resource-group $rg --name cake-hub-firewall-01 --location $location --firewall-policy hub-fw-policy-01 --tier Premium
+az network firewall create --resource-group $rg --name cake-hub-firewall-01 --location $location --policy $fwPolicy --tier Premium
 
 # Create Firewall PIP for cake-hub-firewall-01
 az network public-ip create --resource-group $rg --name cake-hub-firewall-pip-01 --location $location --allocation-method Static --sku Standard

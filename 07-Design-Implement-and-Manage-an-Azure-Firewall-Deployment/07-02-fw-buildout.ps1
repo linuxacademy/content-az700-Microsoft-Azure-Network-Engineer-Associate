@@ -135,6 +135,8 @@ az network route-table route create --resource-group $rg --route-table-name cake
 # Associate the route table with the cake-spoke2-vnet subnet-01
 az network vnet subnet update --resource-group $rg --vnet-name cake-spoke2-vnet --name spoke2-subnet-01 --route-table cake-spoke2-fw-route-table --address-prefixes 172.32.0.0/24
 
+# Create hub-firewall-policy
+az network firewall policy create -n hub-fw-policy-01 -g $rg --sku Premium --location $location
 
 # Create AzureFirewallSubnet for hub-vnet
 az network vnet subnet create --resource-group $rg --vnet-name cake-hub-vnet --name AzureFirewallSubnet --address-prefix 10.60.1.0/26

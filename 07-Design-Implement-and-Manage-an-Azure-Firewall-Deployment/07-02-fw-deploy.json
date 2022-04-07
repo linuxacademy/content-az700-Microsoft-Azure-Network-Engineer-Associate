@@ -12,7 +12,7 @@
   "variables": {
     "vmNicName": "cake-hub-vm-nic-01",
     "vmName": "cake-hub-vm-01",
-    "vmSize": "Standard_D2_v2",
+    "vmSize": "standard_b2s",
     "adminUsername": "cakeadmin",
     "vmPIPName": "cake-hub-vm-01-pip",
     "adminPassword": "[parameters('adminPassword')]",

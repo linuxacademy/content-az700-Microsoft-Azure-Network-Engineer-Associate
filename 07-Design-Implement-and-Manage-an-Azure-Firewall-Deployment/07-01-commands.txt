@@ -1,6 +1,6 @@
 # These commands will be used to setup demos and pull down scripts from GitHub - Copy/Paste the below commands into Cloud Shell PowerShell Environment
 
-curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/07-Design-Implement-and-Manage-an-Azure-Firewall-Deployment/07-fw-buildout.ps1 -o setup.ps1
+curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/07-Design-Implement-and-Manage-an-Azure-Firewall-Deployment/07-01-fw-buildout.ps1 -o setup.ps1
 # Install extensions without prompt
 az config set extension.use_dymanic_install=yes_without_prompt # may work if not already installed - otherwise perform as pre-step before running script
 . ./setup.ps1

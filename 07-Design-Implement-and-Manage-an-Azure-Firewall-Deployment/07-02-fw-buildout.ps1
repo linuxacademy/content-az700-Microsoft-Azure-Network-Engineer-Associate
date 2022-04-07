@@ -108,32 +108,32 @@ az network vnet peering create --resource-group $rg --name spoke1-to-hub-peering
 $global:setConfig = az config set extension.use_dymanic_install=yes_without_prompt # may work if not already installed - otherwise perform as pre-step before running script
 $global:setConfig
 
-# Create AzureFirewallSubnet for spoke2-vnet
-az network vnet subnet create --resource-group $rg --vnet-name cake-spoke2-vnet --name AzureFirewallSubnet --address-prefix 172.32.1.0/26
+# # Create AzureFirewallSubnet for spoke2-vnet
+# az network vnet subnet create --resource-group $rg --vnet-name cake-spoke2-vnet --name AzureFirewallSubnet --address-prefix 172.32.1.0/26
 
-# Create cake-spoke2-firewall-01
-az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location
+# # Create cake-spoke2-firewall-01
+# az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location
 
-# Create Firewall PIP for cake-spoke2-firewall-01
-az network public-ip create --resource-group $rg --name cake-spoke2-firewall-pip-01 --location $location --allocation-method Static --sku Standard
+# # Create Firewall PIP for cake-spoke2-firewall-01
+# az network public-ip create --resource-group $rg --name cake-spoke2-firewall-pip-01 --location $location --allocation-method Static --sku Standard
 
-# Create Firewall IP Config for cake-spoke2-firewall-01
-az network firewall ip-config create --resource-group $rg --firewall-name cake-spoke2-firewall-01 --name cake-spoke2-firewall-ip-config --public-ip-address cake-spoke2-firewall-pip-01 --vnet-name cake-spoke2-vnet
+# # Create Firewall IP Config for cake-spoke2-firewall-01
+# az network firewall ip-config create --resource-group $rg --firewall-name cake-spoke2-firewall-01 --name cake-spoke2-firewall-ip-config --public-ip-address cake-spoke2-firewall-pip-01 --vnet-name cake-spoke2-vnet
 
-# Update the firewall to associate the IP config
-az network firewall update --resource-group $rg --name cake-spoke2-firewall-01
+# # Update the firewall to associate the IP config
+# az network firewall update --resource-group $rg --name cake-spoke2-firewall-01
 
-# Get firewall private IP address and set to variable for reuse
-$hubfwprivip = az network firewall show --resource-group $rg --name cake-spoke2-firewall-01 --query "ipConfigurations[0].privateIPAddress" --output tsv
+# # Get firewall private IP address and set to variable for reuse
+# $hubfwprivip = az network firewall show --resource-group $rg --name cake-spoke2-firewall-01 --query "ipConfigurations[0].privateIPAddress" --output tsv
 
-# Create main Route Table that will push traffic from cake-spoke2-vnet associated subnets to cake-spoke2-firewall-01
-az network route-table create --resource-group $rg --name cake-spoke2-fw-route-table --location $location --disable-bgp-route-propagation true
+# # Create main Route Table that will push traffic from cake-spoke2-vnet associated subnets to cake-spoke2-firewall-01
+# az network route-table create --resource-group $rg --name cake-spoke2-fw-route-table --location $location --disable-bgp-route-propagation true
 
-# Create the route that will push traffic from cake-spoke2-vnet associated subnets to cake-spoke2-firewall-01
-az network route-table route create --resource-group $rg --route-table-name cake-spoke2-fw-route-table --name cake-spoke2-fw-route --address-prefixes 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $hubfwprivip
+# # Create the route that will push traffic from cake-spoke2-vnet associated subnets to cake-spoke2-firewall-01
+# az network route-table route create --resource-group $rg --route-table-name cake-spoke2-fw-route-table --name cake-spoke2-fw-route --address-prefixes 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $hubfwprivip
 
-# Associate the route table with the cake-spoke2-vnet subnet-01
-az network vnet subnet update --resource-group $rg --vnet-name cake-spoke2-vnet --name spoke2-subnet-01 --route-table cake-spoke2-fw-route-table --address-prefixes 172.32.0.0/24
+# # Associate the route table with the cake-spoke2-vnet subnet-01
+# az network vnet subnet update --resource-group $rg --vnet-name cake-spoke2-vnet --name spoke2-subnet-01 --route-table cake-spoke2-fw-route-table --address-prefixes 172.32.0.0/24
 
 # Create hub-firewall-policy
 az network firewall policy create -n hub-fw-policy-01 -g $rg --sku Premium --location $location

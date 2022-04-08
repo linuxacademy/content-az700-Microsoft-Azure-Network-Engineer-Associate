@@ -120,7 +120,7 @@
     {
       "apiVersion": "2019-04-01",
       "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "name": "[concat('peer-', variables('hubVnetName'), '-to-', variables('spoke1VnetName'))]",
+      "name": "peer-hub-to-spoke1",
       "location": "[variables('location')]",
       "properties": {
         "allowVirtualNetworkAccess": true,
@@ -139,7 +139,7 @@
     {
       "apiVersion": "2019-04-01",
       "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "name": "[concat('peer-', variables('spoke1VnetName'), '-to-', variables('hubVnetName'))]",
+      "name": "peer-spoke1-to-hub",
       "location": "[variables('location')]",
       "properties": {
         "allowVirtualNetworkAccess": true,

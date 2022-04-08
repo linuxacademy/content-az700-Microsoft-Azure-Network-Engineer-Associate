@@ -10,26 +10,30 @@
     }
   },
   "variables": {
-    "vmNicName": "cake-hub-vm-nic-01",
-    "vmName": "cake-hub-vm-01",
+    "orgName": "cake",
+    "bastionName": "[concat(variables('orgName'), '-hub-bastion-01')]",
+    "bastionPublicIpName": "[concat(variables('orgName'), '-hub-bastion-pip-01')]",
+    "bastionSubnetName": "AzureBastionSubnet",
+    "bastionSubnetPrefix": "10.60.2.0/27",
+    "vmNicName": "[concat(variables('orgName'), '-hub-nic-01')]",
+    "vmName": "[concat(variables('orgName'), '-hub-vm-01')]",
     "vmSize": "standard_b2s",
     "adminUsername": "cakeadmin",
-    "vmPIPName": "cake-hub-vm-01-pip",
+    "vmPIPName": "[concat(variables('orgName'), '-vm-pip-01')]",
     "adminPassword": "[parameters('adminPassword')]",
     "hubSubnetName": "hub-subnet-01",
     "hubSubnetPrefix": "10.60.0.0/24",
-    "firewallName": "cake-hub-fw-01",
-    "firewallPolicyName": "[concat(variables('firewallName'), '-policy', uniqueString(resourceGroup().id))]",
+    "firewallName": "[concat(variables('orgName'), '-hub-fw-01')]",
+    "firewallPolicyName": "[concat(variables('firewallName'), '-policy', substring(uniqueString(resourceGroup().id), 0, 6))]",
     "location": "[resourceGroup().location]",
     "numberOfPublicIPAddresses": 1,
-    "virtualNetworkName": "cake-hub-vnet-01",
+    "virtualNetworkName": "[concat(variables('orgName'), '-hub-vnet-01')]",
     "vnetAddressPrefix": "10.60.0.0/16",
     "azureFirewallSubnetPrefix": "10.60.1.0/26",
-    "publicIPNamePrefix": "publicIP",
-    "azurepublicIpname": "[variables('publicIPNamePrefix')]",
+    "fwPublicIpName": "[concat(variables('orgName'), '-hub-fw-pip-01')]",
     "azureFirewallSubnetName": "AzureFirewallSubnet",
     "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('virtualNetworkName'), variables('azureFirewallSubnetName'))]",
-    "azureFirewallPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPNamePrefix'))]",
+    "azureFirewallPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('fwPublicIpName'))]",
     "azureFirewallSubnetJSON": "[json(format('{{\"id\": \"{0}\"}}', variables('azureFirewallSubnetId')))]",
     "copy": [
       {
@@ -71,6 +75,12 @@
             "name": "[variables('azureFirewallSubnetName')]",
             "properties": {
               "addressPrefix": "[variables('azureFirewallSubnetPrefix')]"
+            }
+          },
+          {
+            "name": "[variables('bastionSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('bastionSubnetPrefix')]"
             }
           }
         ],
@@ -170,7 +180,7 @@
       }
     },
     {
-      "name": "[concat(variables('azurepublicIpname'), add(copyIndex(), 1))]",
+      "name": "[concat(variables('fwPublicIpName'), add(copyIndex(), 1))]",
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2019-04-01",
       "location": "[variables('location')]",
@@ -211,6 +221,44 @@
           "id": "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]"
         }
       }
+    },
+    {
+      "apiVersion": "2019-02-01",
+      "type": "Microsoft.Network/publicIpAddresses",
+      "name": "[variables('bastionPublicIpName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      },
+      "tags": {}
+    },
+    {
+      "apiVersion": "2019-09-01",
+      "type": "Microsoft.Network/bastionHosts",
+      "name": "[variables('bastionName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "IpConf",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "tags": {}
     }
   ]
 }

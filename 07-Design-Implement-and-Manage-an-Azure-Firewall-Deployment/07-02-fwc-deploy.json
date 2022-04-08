@@ -11,8 +11,6 @@
   },
   "variables": {
     "orgName": "cake",
-    "routeTableName": "fw-rt-01",
-    "routeName": "fw-route-01",
     "bastionName": "[concat(variables('orgName'), '-hub-bastion-01')]",
     "bastionPublicIpName": "[concat(variables('orgName'), '-hub-bastion-pip-01')]",
     "bastionSubnetName": "AzureBastionSubnet",

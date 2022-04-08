@@ -169,7 +169,7 @@
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "dnsSettings": {
-          "domainNameLabel": "[toLower(variables('vmName'))]"
+          "domainNameLabel": "[concat(toLower(variables('vmName')), substring(uniqueString(resourceGroup().id), 0, 3))]"
         }
       }
     },
@@ -260,9 +260,7 @@
       },
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[toLower(variables('vm2Name'))]"
-        }
+        "domainNameLabel": "[concat(toLower(variables('vm2Name')), substring(uniqueString(resourceGroup().id), 0, 3))]"
       }
     },
     {

@@ -11,6 +11,8 @@
   },
   "variables": {
     "orgName": "cake",
+    "routeTableName": "fw-rt-01",
+    "routeName": "fw-route-01",
     "bastionName": "[concat(variables('orgName'), '-hub-bastion-01')]",
     "bastionPublicIpName": "[concat(variables('orgName'), '-hub-bastion-pip-01')]",
     "bastionSubnetName": "AzureBastionSubnet",
@@ -60,12 +62,12 @@
   },
   "resources": [
     {
-      "name": "[variables('virtualNetworkName')]",
+      "name": "[variables('hubVnetName')]",
       "apiVersion": "2019-04-01",
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[variables('location')]",
       "tags": {
-        "displayName": "[variables('virtualNetworkName')]"
+        "displayName": "[variables('hubVnetName')]"
       },
       "properties": {
         "addressSpace": {
@@ -406,25 +408,6 @@
         ]
       },
       "tags": {}
-    },
-    {
-      "name": "fw-rt-01",
-      "type": "Microsoft.Network/routeTables",
-      "apiVersion": "2019-04-01",
-      "location": "[resourceGroup().location]",
-      "tags": {},
-      "properties": {
-        "routes": [
-          {
-            "name": "fw-route",
-            "properties": {
-              "addressPrefix": "0.0.0.0/0",
-              "nextHopType": "VirtualAppliance",
-              "nextHopIpAddress": "[reference(variables('firewallName')).properties.hubIPAddressprivateIPAdress]"
-            }
-          }
-        ]
-      }
     }
   ]
 }

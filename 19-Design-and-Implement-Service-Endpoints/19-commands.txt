@@ -1,0 +1,5 @@
+# These commands will be used to setup demos and pull down scripts from GitHub - Copy/Paste the below commands into Cloud Shell PowerShell Environment
+
+curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/19-Design-and-Implement-Service-Endpoints/19-01-vnet-buildout.ps1 -o setup.ps1
+
+. ./setup.ps1

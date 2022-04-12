@@ -13,14 +13,6 @@
       "metadata": {
         "description": "The password for the admin user of the VMs"
       }
-    },
-
-    "availabilityZones": {
-      "type": "array",
-      "defaultValue": ["1", "2", "3"],
-      "metadata": {
-        "description": "Zone numbers e.g. 1,2,3."
-      }
     }
   },
   "functions": [],
@@ -45,7 +37,6 @@
     "spokeVNetMainSubnetName": "spoke-subnet-01",
     "spokeVNetPrefix": "10.120.0.0/16",
     "spokeVNetMainSubnetPrefix": "10.120.0.0/24",
-    "fwPolicyName": "cake-fw-policy",
     "fwName": "cake-hub-fw",
     "fwPIPPrefix": "hub-fw-pip-",
     "numOfFwPIPAddresses": 1,

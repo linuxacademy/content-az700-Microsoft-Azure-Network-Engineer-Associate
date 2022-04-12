@@ -38,7 +38,7 @@
     "spokeVNetPrefix": "10.120.0.0/16",
     "spokeVNetMainSubnetPrefix": "10.120.0.0/24",
     "fwName": "cake-hub-fw",
-    "fwPIPPrefix": "hub-fw-pip-",
+    "fwPIPPrefix": "hub-fw-pip-01",
     "numOfFwPIPAddresses": 1,
     "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('hubVNetName'), variables('firewallSubnetName'))]",
     "azureFirewallSubnetJSON": "[json(format('{{\"id\": \"{0}\"}}', variables('azureFirewallSubnetId')))]",
@@ -51,7 +51,7 @@
           "properties": {
             "subnet": "[if(equals(copyIndex('azureFirewallIpConfigurations'), 0), variables('azureFirewallSubnetJSON'), json('null'))]",
             "publicIPAddress": {
-              "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('fwPIPPrefix'), add(copyIndex('azureFirewallIpConfigurations'), 1)))]"
+              "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('fwPIPPrefix'))]"
             }
           }
         }
@@ -187,7 +187,7 @@
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2020-06-01",
-      "name": "[concat(variables('fwPIPPrefix'), add(copyIndex(), 1))]",
+      "name": "[variables('fwPIPPrefix')]",
       "location": "[variables('location')]",
       "sku": {
         "name": "Standard"
@@ -259,29 +259,6 @@
                   "targetFqdns": ["www.microsoft.com"],
                   "sourceAddresses": ["10.60.0.0/24"],
                   "sourceIpGroups": []
-                }
-              ]
-            }
-          }
-        ],
-        "natRuleCollections": [
-          {
-            "name": "natcollection",
-            "properties": {
-              "priority": 200,
-              "action": {
-                "type": "Dnat"
-              },
-              "rules": [
-                {
-                  "name": "allowssh",
-                  "protocols": ["TCP"],
-                  "translatedAddress": "10.60.0.4",
-                  "translatedPort": "22",
-                  "sourceAddresses": ["*"],
-                  "sourceIpGroups": [],
-                  "destinationAddresses": ["20.84.200.80"],
-                  "destinationPorts": ["22"]
                 }
               ]
             }
@@ -491,5 +468,10 @@
       "tags": {}
     }
   ],
-  "outputs": {}
+  "outputs": {
+    "fwPublicIP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('fwPIPPrefix'))).ipAddress]"
+    }
+  }
 }

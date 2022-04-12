@@ -63,32 +63,11 @@
   },
   "resources": [
     {
-      "type": "Microsoft.Network/routeTables",
-      "apiVersion": "2020-06-01",
-      "name": "[variables('routeTableName')]",
-      "location": "[variables('location')]",
-      "properties": {
-        "disableBgpRoutePropagation": false,
-        "routes": [
-          {
-            "name": "[variables('routeName')]",
-            "properties": {
-              "addressPrefix": "[variables('routePrefix')]",
-              "nextHopType": "[variables('routeNextHopType')]",
-              "nextHopIpAddress": "[variables('routeNextHopIpAddress')]"
-            }
-          }
-        ]
-      }
-    },
-    {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2020-06-01",
       "name": "[variables('hubVNetName')]",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/routeTables', variables('routeTableName'))]"
-      ],
+      "dependsOn": [],
       "tags": {},
       "properties": {
         "addressSpace": {
@@ -98,10 +77,7 @@
           {
             "name": "[variables('hubVNetMainSubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('hubVNetMainSubnetPrefix')]",
-              "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTableName'))]"
-              }
+              "addressPrefix": "[variables('hubVNetMainSubnetPrefix')]"
             }
           },
           {
@@ -124,9 +100,7 @@
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2020-11-01",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/routeTables', variables('routeTableName'))]"
-      ],
+      "dependsOn": [],
       "tags": {},
       "properties": {
         "addressSpace": {
@@ -136,10 +110,7 @@
           {
             "name": "[variables('spokeVNetMainSubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('spokeVNetMainSubnetPrefix')]",
-              "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTableName'))]"
-              }
+              "addressPrefix": "[variables('spokeVNetMainSubnetPrefix')]"
             }
           }
         ]

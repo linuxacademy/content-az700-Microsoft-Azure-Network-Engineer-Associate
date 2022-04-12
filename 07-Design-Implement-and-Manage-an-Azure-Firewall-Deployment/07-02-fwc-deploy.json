@@ -54,7 +54,8 @@
     ],
     "hubVmName": "cake-hub-vm-01",
     "vmSize": "standard_b2s",
-    "spokeVmName": "cake-spoke-vm-01"
+    "spokeVmName": "cake-spoke-vm-01",
+    "dnsServer": "8.8.8.8"
   },
   "resources": [
     {
@@ -196,7 +197,12 @@
               }
             }
           }
-        ]
+        ],
+        "dnsSettings": {
+          "dnsServers": [
+            "[variables('dnsServer')]"
+          ]
+        }
       }
     },
     {
@@ -264,7 +270,12 @@
               }
             }
           }
-        ]
+        ],
+        "dnsSettings": {
+          "dnsServers": [
+            "[variables('dnsServer')]"
+          ]
+        }
       }
     },
     {

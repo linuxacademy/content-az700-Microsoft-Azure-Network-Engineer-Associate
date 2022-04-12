@@ -210,7 +210,83 @@
         "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
       ],
       "properties": {
-        "ipConfigurations": "[variables('azureFirewallIpConfigurations')]"
+        "ipConfigurations": "[variables('azureFirewallIpConfigurations')]",
+        "networkRuleCollections": [
+          {
+            "name": "netcollection",
+            "properties": {
+              "priority": 200,
+              "action": {
+                "type": "Allow"
+              },
+              "rules": [
+                {
+                  "name": "googledns",
+                  "protocols": ["UDP"],
+                  "sourceAddresses": ["10.60.0.0/24"],
+                  "destinationAddresses": ["8.8.8.8"],
+                  "sourceIpGroups": [],
+                  "destinationIpGroups": [],
+                  "destinationFqdns": [],
+                  "destinationPorts": ["53"]
+                }
+              ]
+            }
+          }
+        ],
+        "applicationRuleCollections": [
+          {
+            "name": "appcollection",
+            "properties": {
+              "priority": 200,
+              "action": {
+                "type": "Allow"
+              },
+              "rules": [
+                {
+                  "name": "microsoftcom",
+                  "protocols": [
+                    {
+                      "protocolType": "Http",
+                      "port": 80
+                    },
+                    {
+                      "protocolType": "Https",
+                      "port": 443
+                    }
+                  ],
+                  "fqdnTags": [],
+                  "targetFqdns": ["www.microsoft.com"],
+                  "sourceAddresses": ["10.60.0.0/24"],
+                  "sourceIpGroups": []
+                }
+              ]
+            }
+          }
+        ],
+        "natRuleCollections": [
+          {
+            "name": "natcollection",
+            "properties": {
+              "priority": 200,
+              "action": {
+                "type": "Dnat"
+              },
+              "rules": [
+                {
+                  "name": "allowssh",
+                  "protocols": ["TCP"],
+                  "translatedAddress": "10.60.0.4",
+                  "translatedPort": "22",
+                  "sourceAddresses": ["*"],
+                  "sourceIpGroups": [],
+                  "destinationAddresses": ["20.84.200.80"],
+                  "destinationPorts": ["22"]
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     {
@@ -254,7 +330,10 @@
               }
             }
           }
-        ]
+        ],
+        "dnsSettings": {
+          "dnsServers": ["[variables('googleDNSServers')]"]
+        }
       }
     },
     {
@@ -322,7 +401,10 @@
               }
             }
           }
-        ]
+        ],
+        "dnsSettings": {
+          "dnsServers": ["[variables('googleDNSServers')]"]
+        }
       }
     },
     {

@@ -18,11 +18,6 @@
   "functions": [],
   "variables": {
     "location": "[resourceGroup().location]",
-    "routeTableName": "fw-route-table",
-    "routeName": "fw-route",
-    "routePrefix": "0.0.0.0/0",
-    "routeNextHopType": "VirtualAppliance",
-    "routeNextHopIpAddress": "10.60.2.4",
     "hubVNetName": "cake-hub-vnet-01",
     "hubVNetMainSubnetName": "hub-subnet-01",
     "hubVNetPrefix": "10.60.0.0/16",

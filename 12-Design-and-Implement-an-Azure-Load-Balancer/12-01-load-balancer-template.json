@@ -1,0 +1,221 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin Username for the VMs"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin Password for the VMs"
+      }
+    }
+  },
+  "functions": [],
+  "variables": {
+    "rg": "[resourceGroup().location]",
+    "hubVNetName": "cake-hub-vnet-01",
+    "hubMainSubnetName": "hub-subnet-01",
+    "hubBastionSubnetName": "AzureBastionSubnet",
+    "hubVNetAddressPrefix": "10.60.0.0/16",
+    "hubSubnetAddressPrefix": "10.60.0.0/24",
+    "hubBastionSubnetAddressPrefix": "10.60.1.0/26",
+    "nsgName": "cake-hub-nsg-01",
+    "vmName": "cake-hub-vm-",
+    "vmSize": "standard_b2s",
+    "vmCount": 2,
+    "bastionName": "cake-hub-bastion"
+  },
+  "resources": [
+    {
+      "name": "[variables('nsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2020-11-01",
+      "location": "[variables('rg')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowInboundSSH",
+            "properties": {
+              "description": "Allow inbound SSH traffic from anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowInboundHTTP",
+            "properties": {
+              "description": "Allow inbound HTTP traffic to anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('hubVNetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2020-11-01",
+      "location": "[variables('rg')]",
+      "tags": {},
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('nsgName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": ["[variables('hubVNetAddressPrefix')]"]
+        },
+        "subnets": [
+          {
+            "name": "[variables('hubMainSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubSubnetAddressPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('hubBastionSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubBastionSubnetAddressPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('vmName'), 'nic-0', copyIndex(1))]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-11-01",
+      "location": "[variables('rg')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ],
+      "tags": {},
+      "copy": {
+        "name": "vmNICCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubMainSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('vmName'), '0', copyIndex(1))]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-03-01",
+      "location": "[variables('rg')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmName'), 'nic-0', copyIndex(1)))]"
+      ],
+      "tags": {},
+      "copy": {
+        "name": "vmCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('vmName'), '0', copyIndex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(variables('vmName'), 'disk-0', copyIndex(1))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmName'), 'nic-0', copyIndex(1)))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "name": "[concat(variables('bastionName'), '-pip')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-11-01",
+      "location": "[variables('rg')]",
+      "tags": {},
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      }
+    },
+    {
+      "type": "Microsoft.Network/bastionHosts",
+      "apiVersion": "2019-04-01",
+      "name": "[variables('bastionName')]",
+      "location": "[variables('rg')]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubBastionSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
+}

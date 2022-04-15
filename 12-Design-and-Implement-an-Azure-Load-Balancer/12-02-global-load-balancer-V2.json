@@ -13,13 +13,25 @@
       "metadata": {
         "description": "Admin Password for the VMs"
       }
+    },
+    "_artifactsLocation": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/mrcloudchase/Azure/master/",
+      "metadata": {
+        "description": "Artifacts Location"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Artifacts Location SAS Token"
+      }
     }
   },
   "functions": [],
   "variables": {
     "hubLbRegion": "centralus",
     "spokeLbRegion": "westus",
-    "rg": "[resourceGroup().location]",
     "hubVNetName": "cake-hub-vnet-01",
     "hubMainSubnetName": "hub-subnet-01",
     "hubBastionSubnetName": "AzureBastionSubnet",
@@ -124,7 +136,8 @@
       "apiVersion": "2021-04-01",
       "location": "[variables('hubLbRegion')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/loadBalancers', variables('hubLbName'))]"
       ],
       "tags": {},
       "copy": {
@@ -308,7 +321,8 @@
       "apiVersion": "2021-04-01",
       "location": "[variables('spokeLbRegion')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]",
+        "[resourceId('Microsoft.Network/loadBalancers', variables('spokeLbName'))]"
       ],
       "tags": {},
       "copy": {
@@ -644,24 +658,46 @@
       }
     },
     {
-      "name": "[concat(variables('hubVmName'), '-script')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2020-06-01",
+      "name": "[concat(variables('hubVmName'), '0', copyIndex(1), '/', 'install-nginx')]",
       "location": "[variables('hubLbRegion')]",
-      "tags": {},
+      "copy": {
+        "name": "hubExtensionCopy",
+        "count": "[variables('vmCount')]"
+      },
       "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', variables('hubVmName'))]"
+        "hubVmCopy"
+        ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.1",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "commandToExecute": "apt-get update && apt-get install -y nginx && systemctl enable nginx --now"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2020-06-01",
+      "name": "[concat(variables('spokeVmName'), '0', copyIndex(1), '/', 'install-nginx')]",
+      "location": "[variables('spokeLbRegion')]",
+      "copy": {
+        "name": "spokeExtensionCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "dependsOn": [
+        "spokeVmCopy"
       ],
       "properties": {
         "publisher": "Microsoft.Azure.Extensions",
         "type": "CustomScript",
-        "typeHandlerVersion": "2.0",
+        "typeHandlerVersion": "2.1",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "fileUris": [
-            "[uri()]"
-          ],
-          "commandToExecute": "sh install_nginx.sh"
+          "commandToExecute": "apt-get update && apt-get install -y nginx && systemctl enable nginx --now"
         }
       }
     }

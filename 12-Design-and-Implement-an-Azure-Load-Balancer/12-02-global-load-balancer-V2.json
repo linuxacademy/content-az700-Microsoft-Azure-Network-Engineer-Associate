@@ -13,19 +13,6 @@
       "metadata": {
         "description": "Admin Password for the VMs"
       }
-    },
-    "_artifactsLocation": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/mrcloudchase/Azure/master/",
-      "metadata": {
-        "description": "Artifacts Location"
-      }
-    },
-    "_artifactsLocationSasToken": {
-      "type": "string",
-      "metadata": {
-        "description": "Artifacts Location SAS Token"
-      }
     }
   },
   "functions": [],

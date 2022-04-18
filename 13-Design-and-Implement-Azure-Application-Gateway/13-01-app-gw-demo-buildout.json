@@ -1,59 +1,56 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "adminUsername": {
-        "type": "string",
-        "metadata": {
-          "description": "Admin Username for the VMs"
-        }
-      },
-      "adminPassword": {
-        "type": "securestring",
-        "metadata": {
-          "description": "Admin Password for the VMs"
-        }
-      },
-      "_artifactsLocation": {
-        "type": "string",
-        "defaultValue": "https://raw.githubusercontent.com/mrcloudchase/Azure/master/",
-        "metadata": {
-          "description": "Artifacts Location"
-        }
-      },
-      "_artifactsLocationSasToken": {
-        "type": "string",
-        "metadata": {
-          "description": "Artifacts Location SAS Token"
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin Username for the VMs"
       }
     },
-    "functions": [],
-    "variables": {
-        "customData": "[concat('#include\n',
-        uri(parameters('_artifactsLocation'),
-        concat('cloud-init.txt',
-           parameters('_artifactsLocationSasToken'))))]",
-        "location": "[resourceGroup().location]",
-        "appServicePlanName": "cake-hub-web-app-plan",
-        "webAppPortalName": "cake-hub-web-app",
-        "linuxFxVersion": "php|7.4",
-        "appServicePlanSku": "S1",
-        "hubVNetName": "cake-hub-vnet-01",
-        "hubMainSubnetName": "hub-subnet-01",
-        "hubBastionSubnetName": "AzureBastionSubnet",
-        "hubVNetAddressPrefix": "10.60.0.0/16",
-        "hubSubnetAddressPrefix": "10.60.0.0/24",
-        "hubBastionSubnetAddressPrefix": "10.60.2.0/26",
-        "hubNsgName": "cake-hub-nsg-01",
-        "bastionName": "cake-hub-bastion",
-        "hubVmName": "cake-hub-vm-",
-        "vmCount": 1,
-        "vmSize": "standard_b2s",
-        "appServiceSubnetName": "app-service-subnet",
-        "appServiceSubnetAddressPrefix": "10.60.1.0/24"
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin Password for the VMs"
+      }
     },
-    "resources": [
+    "_artifactsLocation": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/mrcloudchase/Azure/master/",
+      "metadata": {
+        "description": "Artifacts Location"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Artifacts Location SAS Token"
+      }
+    }
+  },
+  "functions": [],
+  "variables": {
+    "customData": "[concat('#include\n', uri(parameters('_artifactsLocation'), concat('cloud-init.txt', parameters('_artifactsLocationSasToken'))))]",
+    "location": "[resourceGroup().location]",
+    "appServicePlanName": "cake-hub-web-app-plan",
+    "webAppPortalName": "cake-hub-web-app",
+    "linuxFxVersion": "php|7.4",
+    "appServicePlanSku": "S1",
+    "hubVNetName": "cake-hub-vnet-01",
+    "hubMainSubnetName": "hub-subnet-01",
+    "hubBastionSubnetName": "AzureBastionSubnet",
+    "hubVNetAddressPrefix": "10.60.0.0/16",
+    "hubSubnetAddressPrefix": "10.60.0.0/24",
+    "hubBastionSubnetAddressPrefix": "10.60.2.0/26",
+    "hubNsgName": "cake-hub-nsg-01",
+    "bastionName": "cake-hub-bastion",
+    "hubVmName": "cake-hub-vm-",
+    "vmCount": 1,
+    "vmSize": "standard_b2s",
+    "appServiceSubnetName": "app-service-subnet",
+    "appServiceSubnetAddressPrefix": "10.60.1.0/24"
+  },
+  "resources": [
     {
       "name": "[concat(variables('hubVmName'), 'nic-0', copyIndex(1))]",
       "type": "Microsoft.Network/networkInterfaces",
@@ -131,133 +128,133 @@
         }
       }
     },
-      {
-        "name": "[variables('hubNsgName')]",
-        "type": "Microsoft.Network/networkSecurityGroups",
-        "apiVersion": "2021-04-01",
-        "location": "[variables('location')]",
-        "properties": {
-          "securityRules": [
-            {
-              "name": "AllowInboundSSH",
-              "properties": {
-                "description": "Allow inbound SSH traffic from anywhere",
-                "protocol": "Tcp",
-                "sourcePortRange": "*",
-                "destinationPortRange": "22",
-                "sourceAddressPrefix": "*",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 200,
-                "direction": "Inbound"
-              }
-            },
-            {
-              "name": "AllowInboundHTTP",
-              "properties": {
-                "description": "Allow inbound HTTP traffic to anywhere",
-                "protocol": "Tcp",
-                "sourcePortRange": "*",
-                "destinationPortRange": "80",
-                "sourceAddressPrefix": "*",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 250,
-                "direction": "Inbound"
-              }
+    {
+      "name": "[variables('hubNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowInboundSSH",
+            "properties": {
+              "description": "Allow inbound SSH traffic from anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
             }
-          ]
-        }
-      },
-      {
-        "name": "[variables('hubVNetName')]",
-        "type": "Microsoft.Network/virtualNetworks",
-        "apiVersion": "2021-04-01",
-        "location": "[variables('location')]",
-        "tags": {},
-        "dependsOn": [
-          "[concat('Microsoft.Network/networkSecurityGroups/', variables('hubNsgName'))]"
-        ],
-        "properties": {
-          "addressSpace": {
-            "addressPrefixes": ["[variables('hubVNetAddressPrefix')]"]
           },
-          "subnets": [
-            {
-              "name": "[variables('hubMainSubnetName')]",
-              "properties": {
-                "addressPrefix": "[variables('hubSubnetAddressPrefix')]",
-                "networkSecurityGroup": {
-                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
-                }
-              }
-            },
-            {
-                "name": "[variables('appServiceSubnetName')]",
-                "properties": {
-                    "addressPrefix": "[variables('appServiceSubnetAddressPrefix')]",
-                    "delegations": [
-                        {
-                            "name": "delegation",
-                            "properties": {
-                                "serviceName": "Microsoft.Web/serverFarms"
-                            }
-                        }
-                    ],
-                    "networkSecurityGroup": {
-                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
-                    }
-                }
-            },
-            {
-              "name": "[variables('hubBastionSubnetName')]",
-              "properties": {
-                "addressPrefix": "[variables('hubBastionSubnetAddressPrefix')]"
-              }
+          {
+            "name": "AllowInboundHTTP",
+            "properties": {
+              "description": "Allow inbound HTTP traffic to anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 250,
+              "direction": "Inbound"
             }
-          ]
-        }
-      },
-      {
-        "name": "[concat(variables('bastionName'), '-pip')]",
-        "type": "Microsoft.Network/publicIPAddresses",
-        "apiVersion": "2021-04-01",
-        "location": "[variables('location')]",
-        "tags": {},
-        "sku": {
-          "name": "Standard"
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('hubVNetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('hubNsgName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": ["[variables('hubVNetAddressPrefix')]"]
         },
-        "properties": {
-          "publicIPAllocationMethod": "Static"
-        }
-      },
-      {
-        "type": "Microsoft.Network/bastionHosts",
-        "apiVersion": "2019-04-01",
-        "name": "[variables('bastionName')]",
-        "location": "[variables('location')]",
-        "tags": {},
-        "dependsOn": [
-          "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]",
-          "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
-        ],
-        "properties": {
-          "ipConfigurations": [
-            {
-              "name": "ipConfig",
-              "properties": {
-                "publicIPAddress": {
-                  "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]"
-                },
-                "subnet": {
-                  "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubBastionSubnetName'))]"
-                }
+        "subnets": [
+          {
+            "name": "[variables('hubMainSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubSubnetAddressPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
               }
             }
-          ]
-        }
+          },
+          {
+            "name": "[variables('appServiceSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('appServiceSubnetAddressPrefix')]",
+              "delegations": [
+                {
+                  "name": "delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.Web/serverFarms"
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('hubBastionSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubBastionSubnetAddressPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('bastionName'), '-pip')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "sku": {
+        "name": "Standard"
       },
-      {
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      }
+    },
+    {
+      "type": "Microsoft.Network/bastionHosts",
+      "apiVersion": "2019-04-01",
+      "name": "[variables('bastionName')]",
+      "location": "[variables('location')]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubBastionSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2020-06-01",
       "name": "[variables('appServicePlanName')]",
@@ -288,7 +285,6 @@
         "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('appServiceSubnetName'))]"
       }
     }
-    ],
-    "outputs": {}
-  }
-  
+  ],
+  "outputs": {}
+}

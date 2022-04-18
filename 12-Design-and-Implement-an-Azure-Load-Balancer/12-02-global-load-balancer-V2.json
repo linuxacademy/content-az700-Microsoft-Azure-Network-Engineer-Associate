@@ -653,9 +653,7 @@
         "name": "hubExtensionCopy",
         "count": "[variables('vmCount')]"
       },
-      "dependsOn": [
-        "hubVmCopy"
-        ],
+      "dependsOn": ["hubVmCopy"],
       "properties": {
         "publisher": "Microsoft.Azure.Extensions",
         "type": "CustomScript",
@@ -675,9 +673,7 @@
         "name": "spokeExtensionCopy",
         "count": "[variables('vmCount')]"
       },
-      "dependsOn": [
-        "spokeVmCopy"
-      ],
+      "dependsOn": ["spokeVmCopy"],
       "properties": {
         "publisher": "Microsoft.Azure.Extensions",
         "type": "CustomScript",

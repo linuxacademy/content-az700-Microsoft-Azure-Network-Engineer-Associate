@@ -5,3 +5,4 @@ curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azur
 $rg = az group list --query '[].name' -o tsv
 
 az deployment group create --resource-group $rg --template-file ./setup.json
+

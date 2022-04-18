@@ -31,7 +31,7 @@
   "functions": [],
   "variables": {
     "customData": "[concat('#include\n', uri(parameters('_artifactsLocation'), concat('cloud-init.txt', parameters('_artifactsLocationSasToken'))))]",
-    "hubLbRegion": "centralus",
+    "hubLbRegion": "eastus2",
     "spokeLbRegion": "westus",
     "hubVNetName": "cake-hub-vnet-01",
     "hubMainSubnetName": "hub-subnet-01",

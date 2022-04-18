@@ -20,17 +20,11 @@
       "metadata": {
         "description": "Artifacts Location"
       }
-    },
-    "_artifactsLocationSasToken": {
-      "type": "string",
-      "metadata": {
-        "description": "Artifacts Location SAS Token"
-      }
     }
   },
   "functions": [],
   "variables": {
-    "customData": "[concat('#include\n', uri(parameters('_artifactsLocation'), concat('cloud-init.txt', parameters('_artifactsLocationSasToken'))))]",
+    "customData": "[concat('#include\n', uri(parameters('_artifactsLocation'),'cloud-init.txt'))]",
     "rg": "[resourceGroup().location]",
     "hubVNetName": "cake-hub-vnet-01",
     "hubMainSubnetName": "hub-subnet-01",

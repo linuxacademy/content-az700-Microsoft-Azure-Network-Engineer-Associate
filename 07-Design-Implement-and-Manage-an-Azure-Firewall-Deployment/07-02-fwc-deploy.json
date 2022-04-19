@@ -199,9 +199,7 @@
           }
         ],
         "dnsSettings": {
-          "dnsServers": [
-            "[variables('dnsServer')]"
-          ]
+          "dnsServers": ["[variables('dnsServer')]"]
         }
       }
     },
@@ -272,9 +270,7 @@
           }
         ],
         "dnsSettings": {
-          "dnsServers": [
-            "[variables('dnsServer')]"
-          ]
+          "dnsServers": ["[variables('dnsServer')]"]
         }
       }
     },

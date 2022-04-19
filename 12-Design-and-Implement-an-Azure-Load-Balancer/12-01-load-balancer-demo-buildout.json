@@ -13,10 +13,18 @@
       "metadata": {
         "description": "Admin Password for the VMs"
       }
+    },
+    "_artifactsLocation": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/mrcloudchase/Azure/master/",
+      "metadata": {
+        "description": "Artifacts Location"
+      }
     }
   },
   "functions": [],
   "variables": {
+    "customData": "[concat('#include\n', uri(parameters('_artifactsLocation'),'cloud-init.txt'))]",
     "rg": "[resourceGroup().location]",
     "hubVNetName": "cake-hub-vnet-01",
     "hubMainSubnetName": "hub-subnet-01",
@@ -148,7 +156,8 @@
         "osProfile": {
           "computerName": "[concat(variables('vmName'), '0', copyIndex(1))]",
           "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(variables('customData'))]"
         },
         "storageProfile": {
           "imageReference": {

@@ -66,7 +66,8 @@
       "apiVersion": "2021-04-01",
       "location": "[variables('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwName'))]"
       ],
       "tags": {},
       "copy": {
@@ -333,7 +334,8 @@
       "apiVersion": "2021-04-01",
       "location": "[variables('spokeLocation')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwName'))]"
       ],
       "tags": {},
       "copy": {

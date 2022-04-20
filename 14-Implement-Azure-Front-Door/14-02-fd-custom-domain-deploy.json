@@ -418,7 +418,9 @@
       "apiVersion": "2020-05-01",
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwName'))]"
       ],
       "properties": {
         "allowVirtualNetworkAccess": true,
@@ -436,7 +438,9 @@
       "apiVersion": "2020-05-01",
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwName'))]"
       ],
       "properties": {
         "allowVirtualNetworkAccess": true,

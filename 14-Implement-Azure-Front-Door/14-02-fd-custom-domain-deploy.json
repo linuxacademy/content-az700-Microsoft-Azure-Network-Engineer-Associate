@@ -785,9 +785,9 @@
             "apiVersion": "2021-06-01",
             "name": "[concat(variables('fdName'), '/defaultorigingroup/huborigin')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
+                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), '/defaultorigingroup')]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
-                "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwName'))]"
+                "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwPublicIPName'))]"
             ],
             "properties": {
                 "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('hubAppGwPublicIpName'))).ipAddress]",
@@ -805,9 +805,9 @@
             "apiVersion": "2021-06-01",
             "name": "[concat(variables('fdName'), '/defaultorigingroup/spokeorigin')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
+                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), '/defaultorigingroup')]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
-                "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwName'))]"
+                "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwPublicIPName'))]"
             ],
             "properties": {
                 "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('spokeAppGwPublicIpName'))).ipAddress]",

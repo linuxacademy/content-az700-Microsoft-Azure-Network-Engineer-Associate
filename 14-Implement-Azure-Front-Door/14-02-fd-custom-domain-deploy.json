@@ -58,7 +58,12 @@
     "hubAppGwPublicIpName": "cake-hub-appgw-pip",
     "spokeAppGwName": "cake-spoke-appgw",
     "spokeAppGwPublicIpName": "cake-spoke-appgw-pip",
-    "fdName": "cake-fd-01"
+    "fdName": "cake-fd-01",
+    "fdOriginGroupName": "defaultorigingroup",
+    "fdHubOriginName": "huborigin",
+    "fdSpokeOriginName": "spokeorigin",
+    "fdEndpointName": "cloudchase",
+    "fdRouteName": "defaultroute"
   },
   "resources": [
     {
@@ -747,9 +752,9 @@
         },
         
         {
-            "type": "Microsoft.Cdn/profiles/afdendpoints",
+            "type": "Microsoft.Cdn/profiles/afdEndpoints",
             "apiVersion": "2021-06-01",
-            "name": "[concat(variables('fdName'), '/cloudchase')]",
+            "name": "[format('{0}/{1}', variables('fdName'), variables('fdEndpointName'))]",
             "location": "Global",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]"
@@ -759,9 +764,9 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/origingroups",
+            "type": "Microsoft.Cdn/profiles/originGroups",
             "apiVersion": "2021-06-01",
-            "name": "[concat(variables('fdName'), '/defaultorigingroup')]",
+            "name": "[format('{0}/{1}', variables('fdName'), variables('fdOriginGroupName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]"
             ],
@@ -781,11 +786,11 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/origingroups/origins",
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
             "apiVersion": "2021-06-01",
-            "name": "[concat(variables('fdName'), '/defaultorigingroup/huborigin')]",
+            "name": "[format('{0}/{1}/{2}', variables('fdName'), variables('fdOriginGroupName'), variables('fdHubOriginName'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', variables('fdName'), variables('fdOriginGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('hubAppGwPublicIPName'))]"
             ],
@@ -801,11 +806,11 @@
             }
         },
         {
-            "type": "Microsoft.Cdn/profiles/origingroups/origins",
+            "type": "Microsoft.Cdn/profiles/originGroups/origins",
             "apiVersion": "2021-06-01",
-            "name": "[concat(variables('fdName'), '/defaultorigingroup/spokeorigin')]",
+            "name": "[format('{0}/{1}/{2}', variables('fdName'), variables('fdOriginGroupName'), variables('fdSpokeOriginName'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', variables('fdName'), variables('fdOriginGroupName'))]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('spokeAppGwPublicIPName'))]"
             ],
@@ -823,16 +828,16 @@
         {
             "type": "Microsoft.Cdn/profiles/afdendpoints/routes",
             "apiVersion": "2021-06-01",
-            "name": "[concat(variables('fdName'), '/cloudchase/defaultroute')]",
+            "name": "[format('{0}/{1}/{2}', variables('fdName'), variables('fdEndpointName'), variables('fdRouteName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/afdendpoints', variables('fdName'), 'cloudchase')]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
-                "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]"
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', variables('fdName'), 'defaultorigingroup')]"
             ],
             "properties": {
                 "customDomains": [],
                 "originGroup": {
-                    "id": "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]"
+                    "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', variables('fdName'), variables('fdOriginGroupName'))]"
                 },
                 "ruleSets": [],
                 "supportedProtocols": [

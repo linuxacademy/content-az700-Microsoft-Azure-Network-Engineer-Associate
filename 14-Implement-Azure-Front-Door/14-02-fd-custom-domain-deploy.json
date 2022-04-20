@@ -777,10 +777,6 @@
                 "name": "Standard_AzureFrontDoor"
             },
             "kind": "frontdoor",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwName'))]",
-                "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwName'))]"
-            ],
             "properties": {
                 "originResponseTimeoutSeconds": 60
             }
@@ -826,7 +822,8 @@
             "name": "[concat(variables('fdName'), '/defaultorigingroup/huborigin')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
-                "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('hubAppGwPublicIpName'))]"
             ],
             "properties": {
                 "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('hubAppGwPublicIpName'))).ipAddress]",
@@ -845,7 +842,8 @@
             "name": "[concat(variables('fdName'), '/defaultorigingroup/spokeorigin')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
-                "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]"
+                "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('spokeAppGwPublicIpName'))]"
             ],
             "properties": {
                 "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('spokeAppGwPublicIpName'))).ipAddress]",

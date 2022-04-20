@@ -787,7 +787,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('hubAppGwName'))]"
+                "[resourceId('Microsoft.Network/applicationGateways', variables('hubAppGwName'))]"
             ],
             "properties": {
                 "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('hubAppGwPublicIpName'))).ipAddress]",
@@ -807,7 +807,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Cdn/profiles/origingroups', variables('fdName'), 'defaultorigingroup')]",
                 "[resourceId('Microsoft.Cdn/profiles', variables('fdName'))]",
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('spokeAppGwName'))]"
+                "[resourceId('Microsoft.Network/applicationGateways', variables('spokeAppGwName'))]"
             ],
             "properties": {
                 "hostName": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('spokeAppGwPublicIpName'))).ipAddress]",

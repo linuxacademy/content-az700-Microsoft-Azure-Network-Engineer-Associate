@@ -44,15 +44,3 @@ az network vnet create --name cake-hub-vnet --resource-group $rg --location $loc
 az network vnet subnet create --name hub-subnet-b --resource-group $rg --vnet-name cake-hub-vnet --address-prefixes 10.0.2.0/24 
 
 
-# Create two Linux machines. One in each subnet
-
-az vm create --resource-group $rg --name subnet-a-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-subnet-a-vm --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-a --size Standard_B1s
-
-az vm create --resource-group $rg --name subnet-b-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-subnet-b-vm --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-b --size Standard_B1s
-
-
-# Add rules to default NIC NSGs to allow ICMP
-az network nsg rule create --resource-group $rg --nsg-name subnet-a-vmNSG --name allowIcmp --priority 110 --destination-port-ranges 0-65535 --access Allow --protocol Icmp
-
-az network nsg rule create --resource-group $rg --nsg-name subnet-b-vmNSG --name allowIcmp --priority 110 --destination-port-ranges 0-65535 --access Allow --protocol Icmp
-

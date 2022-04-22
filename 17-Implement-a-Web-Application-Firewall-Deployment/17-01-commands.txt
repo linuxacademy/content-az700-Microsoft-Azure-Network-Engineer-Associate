@@ -1,0 +1,8 @@
+# These commands will be used to setup demos and pull down scripts from GitHub - Copy/Paste the below commands into Cloud Shell PowerShell Environment
+
+curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/16-Design-and-Implement-an-Azure-Virtual-Network-NAT/16-01-nat-deploy.json -o setup.json
+
+$rg = az group list --query '[].name' -o tsv
+
+az deployment group create --resource-group $rg --template-file ./setup.json
+

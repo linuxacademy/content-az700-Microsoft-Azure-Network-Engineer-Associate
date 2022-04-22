@@ -833,9 +833,9 @@
       }
     },
     {
-      "type": "Microsoft.Insights/diagnosticSettings",
-      "apiVersion": "2017-05-01-preview",
-      "name": "[variables('diagSettingsName')]",
+      "type": "Microsoft.Network/applicationGateways/providers/diagnosticSettings",
+      "apiVersion": "2021-05-01-preview",
+      "name": "[format('{0}/microsoft.insights/{1}', variables('hubAppGwName'), variables('diagSettingsName'))]",
       "dependsOn": [
         "[variables('diagWorkspaceId')]",
         "[variables('diagStorageAccountId')]"

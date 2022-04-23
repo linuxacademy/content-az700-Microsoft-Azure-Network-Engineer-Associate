@@ -120,8 +120,7 @@
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "customData": "[base64(variables('customData'))]",
-          "allowExtensionOperations": true,
-          "requireGuestProvisionSignal": true
+          "allowExtensionOperations": true
         },
         "storageProfile": {
           "imageReference": {
@@ -390,8 +389,7 @@
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "customData": "[base64(variables('customData'))]",
-          "allowExtensionOperations": true,
-          "requireGuestProvisionSignal": true
+          "allowExtensionOperations": true
         },
         "storageProfile": {
           "imageReference": {

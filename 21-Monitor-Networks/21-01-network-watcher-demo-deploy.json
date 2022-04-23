@@ -871,7 +871,7 @@
         "count": "[variables('vmCount')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', 'cake-hub-vm-01')]"
+        "hubVmCopy"
       ],
       "properties": {
         "autoUpgradeMinorVersion": true,
@@ -890,7 +890,7 @@
         "count": "[variables('vmCount')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', 'cake-spoke-vm-01')]"
+        "spokeVmCopy"
       ],
       "properties": {
         "autoUpgradeMinorVersion": true,

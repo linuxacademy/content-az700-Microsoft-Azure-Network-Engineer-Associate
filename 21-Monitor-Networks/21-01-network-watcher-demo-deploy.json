@@ -424,9 +424,7 @@
       "apiVersion": "2020-05-01",
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('spokeVNetName'), variables('spokeMainSubnetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubMainSubnetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
       ],
       "properties": {
         "allowVirtualNetworkAccess": true,
@@ -443,8 +441,6 @@
       "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
       "apiVersion": "2020-05-01",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubMainSubnetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('spokeVNetName'), variables('spokeMainSubnetName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
       ],

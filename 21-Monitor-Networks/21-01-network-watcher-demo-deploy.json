@@ -864,8 +864,12 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2021-11-01",
-      "name": "[concat(variables('hubVmName'), '/AzureNetworkWatcherExtension')]",
+      "name": "[concat(variables('hubVmName'), '0', copyIndex(1), '/AzureNetworkWatcherExtension')]",
       "location": "[variables('location')]",
+      "copy": {
+        "name": "hubVmExtensionCopy",
+        "count": "[variables('vmCount')]"
+      },
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines', variables('hubVmName'))]"
       ],
@@ -879,8 +883,12 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2021-11-01",
-      "name": "[concat(variables('spokeVmName'), '/AzureNetworkWatcherExtension')]",
+      "name": "[concat(variables('spokeVmName'), '0', copyIndex(1), '/AzureNetworkWatcherExtension')]",
       "location": "[variables('location')]",
+      "copy": {
+        "name": "spokeVmExtensionCopy",
+        "count": "[variables('vmCount')]"
+      },
       "dependsOn": [
         "[resourceId('Microsoft.Compute/virtualMachines', variables('spokeVmName'))]"
       ],

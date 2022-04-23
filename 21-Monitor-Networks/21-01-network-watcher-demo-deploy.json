@@ -119,7 +119,9 @@
           "computerName": "[concat(variables('hubVmName'), '0', copyIndex(1))]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(variables('customData'))]"
+          "customData": "[base64(variables('customData'))]",
+          "allowExtensionOperations": true,
+          "requireGuestProvisionSignal": true
         },
         "storageProfile": {
           "imageReference": {
@@ -387,7 +389,9 @@
           "computerName": "[concat(variables('spokeVmName'), '0', copyIndex(1))]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(variables('customData'))]"
+          "customData": "[base64(variables('customData'))]",
+          "allowExtensionOperations": true,
+          "requireGuestProvisionSignal": true
         },
         "storageProfile": {
           "imageReference": {
@@ -855,6 +859,36 @@
             "enabled": true
           }
         ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2021-11-01",
+      "name": "[concat(variables('hubVmName'), '/AzureNetworkWatcherExtension')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('hubVmName'))]"
+      ],
+      "properties": {
+        "autoUpgradeMinorVersion": true,
+        "publisher": "Microsoft.Azure.NetworkWatcher",
+        "type": "NetworkWatcherAgentLinux",
+        "typeHandlerVersion": "1.4"
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2021-11-01",
+      "name": "[concat(variables('spokeVmName'), '/AzureNetworkWatcherExtension')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('spokeVmName'))]"
+      ],
+      "properties": {
+        "autoUpgradeMinorVersion": true,
+        "publisher": "Microsoft.Azure.NetworkWatcher",
+        "type": "NetworkWatcherAgentLinux",
+        "typeHandlerVersion": "1.4"
       }
     }
   ],

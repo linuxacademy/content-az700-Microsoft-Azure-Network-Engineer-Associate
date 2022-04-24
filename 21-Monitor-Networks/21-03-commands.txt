@@ -1,0 +1,10 @@
+# These commands will be used to setup demos and pull down scripts from GitHub - Copy/Paste the below commands into Cloud Shell PowerShell Environment
+
+curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/21-Monitor-Networks/21-03-connection-monitor-demo-deploy.json -o setup.json
+
+$rg = Read-Host "Enter Resource Group Name: "
+
+Write-Host "Provided Resource Group for Deployment: $rg"
+
+az deployment group create --resource-group $rg --template-file ./setup.json
+

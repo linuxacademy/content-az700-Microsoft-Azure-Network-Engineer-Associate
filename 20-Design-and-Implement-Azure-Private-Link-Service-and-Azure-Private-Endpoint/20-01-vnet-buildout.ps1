@@ -20,6 +20,11 @@ $rg = az group list --query '[].name' -o tsv
 # Assign location variable to playground resource group location
 $location = az group list --query '[].location' -o tsv
 
+# Create storage account name with randomly generated characters
+
+$storagename = -join ((48..57) + (97..122) | Get-Random -Count 12 | % { [char]$_ })
+
+
 ##############################
 ##### END - VARIABLES ######
 ##############################
@@ -29,30 +34,23 @@ $location = az group list --query '[].location' -o tsv
 ####### START - SCRIPT #######
 ##############################
 
-# Create storage account name with randomly generated characters
-
-$storagename = -join ((48..57) + (97..122) | Get-Random -Count 12 | % { [char]$_ })
-
 # Create storage account
 
 az storage account create --name $storagename --resource-group $rg --location $location
 
-# Create Virtual Network and subnets
+# Create Consumer Virtual Network and subnets
 
-az network vnet create --name cake-hub-vnet --resource-group $rg --location $location --address-prefixes 10.0.0.0/16 --subnet-name hub-subnet-a --subnet-prefix 10.0.1.0/24
-
-az network vnet subnet create --name hub-subnet-b --resource-group $rg --vnet-name cake-hub-vnet --address-prefixes 10.0.2.0/24 
+az network vnet create --name consumer-vnet --resource-group $rg --location $location --address-prefixes 10.0.0.0/16 --subnet-name consumer-subnet --subnet-prefix 10.0.1.0/24
 
 
-# Create two Linux machines. One in each subnet
 
-az vm create --resource-group $rg --name subnet-a-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-subnet-a-vm --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-a --size Standard_B1s
+# Create provider network + load balancer
 
-az vm create --resource-group $rg --name subnet-b-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-subnet-b-vm --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-b --size Standard_B1s
+az network vnet create --resource-group $rg --location $location --name provider-vnet --address-prefixes 10.1.0.0/16 --subnet-name provider-subnet --subnet-prefixes 10.1.0.0/24
 
+az network lb create --resource-group $rg --name provider-Loadbalancer --sku Standard --vnet-name provider-vnet --subnet provider-subnet --frontend-ip-name myFrontEnd --backend-pool-name myBackEndPool
 
-# Add rules to default NIC NSGs to allow ICMP
-az network nsg rule create --resource-group $rg --nsg-name subnet-a-vmNSG --name allowIcmp --priority 110 --destination-port-ranges 0-65535 --access Allow --protocol Icmp
+az network lb probe create --resource-group $rg --lb-name provider-Loadbalancer --name myHealthProbe --protocol tcp --port 80
 
-az network nsg rule create --resource-group $rg --nsg-name subnet-b-vmNSG --name allowIcmp --priority 110 --destination-port-ranges 0-65535 --access Allow --protocol Icmp
+az network lb rule create --resource-group $rg --lb-name provider-Loadbalancer --name myHTTPRule --protocol tcp --frontend-port 80 --backend-port 80 --frontend-ip-name myFrontEnd --backend-pool-name myBackEndPool --probe-name myHealthProbe --idle-timeout 15 --enable-tcp-reset true
 

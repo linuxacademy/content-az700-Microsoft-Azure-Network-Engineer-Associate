@@ -40,18 +40,16 @@ az storage account create --name $storagename --resource-group $rg --location $l
 
 # Create Consumer Virtual Network and subnets
 
-az network vnet create --name consumer-vnet --resource-group $rg --location $location --address-prefixes 10.0.0.0/16 --subnet-name hub-subnet-a --subnet-prefix 10.0.1.0/24
+az network vnet create --name consumer-vnet --resource-group $rg --location $location --address-prefixes 10.0.0.0/16 --subnet-name consumer-subnet-a --subnet-prefix 10.0.1.0/24
 
-az network vnet subnet create --name hub-subnet-b --resource-group $rg --vnet-name consumer-vnet --address-prefixes 10.0.2.0/24 
+az network vnet subnet create --name consumer-subnet-b --resource-group $rg --vnet-name consumer-vnet --address-prefixes 10.0.2.0/24 
 
 
-##############################
-# LOAD BALANCER/PROVIDER NETWORK#######
-##############################
+# Create provider network + load balancer
 
-az network vnet create --resource-group $rg --location $location --name provider-vnet --address-prefixes 10.1.0.0/16 --subnet-name mySubnet --subnet-prefixes 10.1.0.0/24
+az network vnet create --resource-group $rg --location $location --name provider-vnet --address-prefixes 10.1.0.0/16 --subnet-name provider-subnet --subnet-prefixes 10.1.0.0/24
 
-az network lb create --resource-group $rg --name provider-Loadbalancer --sku Standard --vnet-name provider-vnet --subnet mySubnet --frontend-ip-name myFrontEnd --backend-pool-name myBackEndPool
+az network lb create --resource-group $rg --name provider-Loadbalancer --sku Standard --vnet-name provider-vnet --subnet provider-subnet --frontend-ip-name myFrontEnd --backend-pool-name myBackEndPool
 
 az network lb probe create --resource-group $rg --lb-name provider-Loadbalancer --name myHealthProbe --protocol tcp --port 80
 

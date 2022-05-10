@@ -1,0 +1,360 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "functions": [],
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "hubAppServicePlanName": "hub-web-app-plan",
+    "hubAppPortalName": "hub-web-app",
+    "spokeAppServicePlanName": "spoke-web-app-plan",
+    "spokeAppPortalName": "spoke-web-app",
+    "appServicePlanSku": "S1",
+    "hubVNetName": "cake-hub-vnet-01",
+    "hubMainSubnetName": "hub-subnet-01",
+    "hubBastionSubnetName": "AzureBastionSubnet",
+    "hubVNetAddressPrefix": "10.60.0.0/16",
+    "hubSubnetAddressPrefix": "10.60.0.0/24",
+    "hubBastionSubnetAddressPrefix": "10.60.2.0/26",
+    "hubNsgName": "cake-hub-nsg-01",
+    "bastionName": "cake-hub-bastion",
+    "hubAppServiceSubnetName": "hub-app-subnet",
+    "hubAppServiceSubnetAddressPrefix": "10.60.1.0/24",
+    "spokeVNetName": "cake-spoke-vnet-01",
+    "spokeMainSubnetName": "spoke-subnet-01",
+    "spokeVNetAddressPrefix": "10.120.0.0/16",
+    "spokeSubnetAddressPrefix": "10.120.0.0/24",
+    "spokeNsgName": "cake-spoke-nsg-01",
+    "spokeLocation": "eastus",
+    "spokeAppServiceSubnetName": "spoke-app-subnet",
+    "spokeAppServiceSubnetAddressPrefix": "10.120.1.0/24"
+  },
+  "resources": [
+    {
+      "name": "[variables('hubNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowInboundSSH",
+            "properties": {
+              "description": "Allow inbound SSH traffic from anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowInboundHTTP",
+            "properties": {
+              "description": "Allow inbound HTTP traffic to anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('hubVNetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('hubNsgName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [ "[variables('hubVNetAddressPrefix')]" ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('hubMainSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubSubnetAddressPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('hubAppServiceSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubAppServiceSubnetAddressPrefix')]",
+              "delegations": [
+                {
+                  "name": "delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.Web/serverFarms"
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('hubBastionSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubBastionSubnetAddressPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('bastionName'), '-pip')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      }
+    },
+    {
+      "type": "Microsoft.Network/bastionHosts",
+      "apiVersion": "2019-04-01",
+      "name": "[variables('bastionName')]",
+      "location": "[variables('location')]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubBastionSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2020-12-01",
+      "name": "[variables('hubAppServicePlanName')]",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "[variables('appServicePlanSku')]",
+        "capacity": 1
+      },
+      "properties": {
+        "name": "[variables('hubAppServicePlanName')]"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-12-01",
+      "name": "[variables('hubAppPortalName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hubAppServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hubAppServicePlanName'))]"
+      },
+      "resources": [
+        {
+          "type": "sourcecontrols",
+          "apiVersion": "2020-12-01",
+          "name": "web",
+          "location": "[variables('location')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('hubAppPortalName'))]"
+          ],
+          "properties": {
+            "repoUrl": "https://github.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/tree/main/ctrl-alt-sweets-com",
+            "branch": "main",
+            "isManualIntegration": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('spokeNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('spokeLocation')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowInboundSSH",
+            "properties": {
+              "description": "Allow inbound SSH traffic from anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowInboundHTTP",
+            "properties": {
+              "description": "Allow inbound HTTP traffic to anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('spokeVNetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('spokeLocation')]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spokeNsgName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [ "[variables('spokeVNetAddressPrefix')]" ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('spokeMainSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('spokeSubnetAddressPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spokeNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('spokeAppServiceSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('spokeAppServiceSubnetAddressPrefix')]",
+              "delegations": [
+                {
+                  "name": "delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.Web/serverFarms"
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spokeNsgName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('hubVNetName'),'/peering-to-',variables('spokeVNetName'))]",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2020-05-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ],
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('spokeVNetName'))]"
+        }
+      }
+    },
+    {
+      "name": "[concat(variables('spokeVNetName'),'/peering-to-',variables('hubVNetName'))]",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2020-05-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ],
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('hubVNetName'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2020-12-01",
+      "name": "[variables('spokeAppServicePlanName')]",
+      "location": "[variables('spokeLocation')]",
+      "sku": {
+        "name": "[variables('appServicePlanSku')]",
+        "capacity": 1
+      },
+      "properties": {
+        "name": "[variables('spokeAppServicePlanName')]"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-12-01",
+      "name": "[variables('spokeAppPortalName')]",
+      "location": "[variables('spokeLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('spokeAppServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('spokeAppServicePlanName'))]"
+      },
+      "resources": [
+        {
+          "type": "sourcecontrols",
+          "apiVersion": "2020-12-01",
+          "name": "web",
+          "location": "[variables('spokeLocation')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('spokeAppPortalName'))]"
+          ],
+          "properties": {
+            "repoUrl": "https://github.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/tree/main/ctrl-alt-sweets-com",
+            "branch": "main",
+            "isManualIntegration": true
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {}
+}

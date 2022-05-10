@@ -1,0 +1,526 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin Username for the VMs"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin Password for the VMs"
+      }
+    },
+    "_artifactsLocation": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/mrcloudchase/Azure/master/",
+      "metadata": {
+        "description": "Artifacts Location"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Artifacts Location SAS Token"
+      }
+    }
+  },
+  "functions": [],
+  "variables": {
+    "customData": "[concat('#include\n', uri(parameters('_artifactsLocation'), concat('cloud-init.txt', parameters('_artifactsLocationSasToken'))))]",
+    "location": "[resourceGroup().location]",
+    "hubAppServicePlanName": "hub-web-app-plan",
+    "hubAppPortalName": "hub-web-app",
+    "spokeAppServicePlanName": "spoke-web-app-plan",
+    "spokeAppPortalName": "spoke-web-app",
+    "linuxFxVersion": "php|7.4",
+    "appServicePlanSku": "S1",
+    "hubVNetName": "cake-hub-vnet-01",
+    "hubMainSubnetName": "hub-subnet-01",
+    "hubBastionSubnetName": "AzureBastionSubnet",
+    "hubVNetAddressPrefix": "10.60.0.0/16",
+    "hubSubnetAddressPrefix": "10.60.0.0/24",
+    "hubBastionSubnetAddressPrefix": "10.60.2.0/26",
+    "hubNsgName": "cake-hub-nsg-01",
+    "bastionName": "cake-hub-bastion",
+    "hubVmName": "cake-hub-vm-",
+    "vmCount": 1,
+    "vmSize": "standard_b2s",
+    "hubAppServiceSubnetName": "hub-app-subnet",
+    "hubAppServiceSubnetAddressPrefix": "10.60.1.0/24",
+    "spokeVNetName": "cake-spoke-vnet-01",
+    "spokeMainSubnetName": "spoke-subnet-01",
+    "spokeVNetAddressPrefix": "10.120.0.0/16",
+    "spokeSubnetAddressPrefix": "10.120.0.0/24",
+    "spokeNsgName": "cake-spoke-nsg-01",
+    "spokeVmName": "cake-spoke-vm-",
+    "spokeLocation": "eastus",
+    "spokeAppServiceSubnetName": "spoke-app-subnet",
+    "spokeAppServiceSubnetAddressPrefix": "10.120.1.0/24"
+  },
+  "resources": [
+    {
+      "name": "[concat(variables('hubVmName'), 'nic-0', copyIndex(1))]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ],
+      "tags": {},
+      "copy": {
+        "name": "hubVmNICCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubMainSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('hubVmName'), '0', copyIndex(1))]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('hubVmName'), 'nic-0', copyIndex(1)))]"
+      ],
+      "tags": {},
+      "copy": {
+        "name": "hubVmCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('hubVmName'), '0', copyIndex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(variables('customData'))]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(variables('hubVmName'), 'disk-0', copyIndex(1))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('hubVmName'), 'nic-0', copyIndex(1)))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "name": "[variables('hubNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowInboundSSH",
+            "properties": {
+              "description": "Allow inbound SSH traffic from anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowInboundHTTP",
+            "properties": {
+              "description": "Allow inbound HTTP traffic to anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('hubVNetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('hubNsgName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": ["[variables('hubVNetAddressPrefix')]"]
+        },
+        "subnets": [
+          {
+            "name": "[variables('hubMainSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubSubnetAddressPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('hubAppServiceSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubAppServiceSubnetAddressPrefix')]",
+              "delegations": [
+                {
+                  "name": "delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.Web/serverFarms"
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('hubNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('hubBastionSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('hubBastionSubnetAddressPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('bastionName'), '-pip')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      }
+    },
+    {
+      "type": "Microsoft.Network/bastionHosts",
+      "apiVersion": "2019-04-01",
+      "name": "[variables('bastionName')]",
+      "location": "[variables('location')]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('bastionName'), '-pip'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubBastionSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2020-06-01",
+      "name": "[variables('hubAppServicePlanName')]",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "[variables('appServicePlanSku')]"
+      },
+      "kind": "linux",
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[variables('hubAppPortalName')]",
+      "location": "[variables('location')]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hubAppServicePlanName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/', variables('hubVNetName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hubAppServicePlanName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "[variables('linuxFxVersion')]"
+        },
+        "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('hubAppServiceSubnetName'))]"
+      }
+    },
+    {
+      "name": "[variables('spokeNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('spokeLocation')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowInboundSSH",
+            "properties": {
+              "description": "Allow inbound SSH traffic from anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowInboundHTTP",
+            "properties": {
+              "description": "Allow inbound HTTP traffic to anywhere",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('spokeVNetName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('spokeLocation')]",
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spokeNsgName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": ["[variables('spokeVNetAddressPrefix')]"]
+        },
+        "subnets": [
+          {
+            "name": "[variables('spokeMainSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('spokeSubnetAddressPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spokeNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('spokeAppServiceSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('spokeAppServiceSubnetAddressPrefix')]",
+              "delegations": [
+                {
+                  "name": "delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.Web/serverFarms"
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('spokeNsgName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('spokeVmName'), 'nic-0', copyIndex(1))]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('spokeLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ],
+      "tags": {},
+      "copy": {
+        "name": "spokeVmNICCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipConfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('spokeVNetName'), variables('spokeMainSubnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('spokeVmName'), '0', copyIndex(1))]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-04-01",
+      "location": "[variables('spokeLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('spokeVmName'), 'nic-0', copyIndex(1)))]"
+      ],
+      "tags": {},
+      "copy": {
+        "name": "spokeVmCopy",
+        "count": "[variables('vmCount')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('spokeVmName'), '0', copyIndex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(variables('customData'))]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(variables('spokeVmName'), 'disk-0', copyIndex(1))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('spokeVmName'), 'nic-0', copyIndex(1)))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    {
+      "name": "[concat(variables('hubVNetName'),'/peering-to-',variables('spokeVNetName'))]",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2020-05-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ],
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('spokeVNetName'))]"
+        }
+      }
+    },
+    {
+      "name": "[concat(variables('spokeVNetName'),'/peering-to-',variables('hubVNetName'))]",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2020-05-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ],
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('hubVNetName'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2020-06-01",
+      "name": "[variables('spokeAppServicePlanName')]",
+      "location": "[variables('spokeLocation')]",
+      "sku": {
+        "name": "[variables('appServicePlanSku')]"
+      },
+      "kind": "linux",
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[variables('spokeAppPortalName')]",
+      "location": "[variables('spokeLocation')]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('spokeAppServicePlanName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/', variables('spokeVNetName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('spokeAppServicePlanName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "[variables('linuxFxVersion')]"
+        },
+        "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('spokeVNetName'), variables('spokeAppServiceSubnetName'))]"
+      }
+    }
+  ],
+  "outputs": {}
+}

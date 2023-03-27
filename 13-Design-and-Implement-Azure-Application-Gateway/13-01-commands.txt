@@ -8,21 +8,6 @@ You can use any unique name for the storage account and any valid name for the f
 Run:
 curl https://raw.githubusercontent.com/linuxacademy/content-az700-Microsoft-Azure-Network-Engineer-Associate/main/13-Design-and-Implement-Azure-Application-Gateway/13-01-app-gw-demo-buildout.json -o setup.json
 
-Edit the setup.json file by opening up the Cloud Shell editor {}
-Select setup.json.
-
-In the setup.json file, change:
-
-"appServicePlanName": "cake-hub-web-app-plan",
-"webAppPortalName": "cake-hub-web-app",
-
-To be:
-
-"appServicePlanName": "cake-hub-web-app-plan-[some unique characters]",
-"webAppPortalName": "cake-hub-web-app-[some unique characters]",
-
-Save the file by clicking in the space below the Cloud Shell editor's X icon on the right and choose `Save`.  You can then click in the space below the Cloud Shell editor's X icon on the right and choose `Close editor`.
-
 You can then run:
 $rg = az group list --query '[].name' -o tsv
 
@@ -33,5 +18,3 @@ You will be prompted for any username and password.
 Click enter when asked about the '_artifactsLocationSasToken'.
 
 Your deployment should begin (It will take about 15-20 minutes).
-
-

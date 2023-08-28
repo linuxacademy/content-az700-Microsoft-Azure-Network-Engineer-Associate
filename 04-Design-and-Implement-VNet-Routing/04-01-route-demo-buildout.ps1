@@ -39,18 +39,18 @@ az network vnet subnet create --name hub-subnet-01 --resource-group $rg --vnet-n
 # One will act as our virtual appliance in the NVA subnet, the other two will be in the subnet
 # associated with our route table
 
-az vm create --resource-group $rg --name vm-1 --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-vm1 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --name vm-1 --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-vm1 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
 
-az vm create --resource-group $rg --name vm-2 --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-vm2 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --name vm-2 --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-vm2 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
 
-az vm create --resource-group $rg --name vm-nva --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-nva --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet nva-subnet --size Standard_B1s
+az vm create --resource-group $rg --name vm-nva --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-nva --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet nva-subnet --size Standard_B1s
 
 # Update the NVA VM to enable IP forwarding. This needs to be enabled on both the VM NIC and within the OS
 # via extension.
 
 az network nic update --name vm-nvaVMNic --resource-group $rg --ip-forwarding true
 
-az vm extension set --resource-group $rg --vm-name vm-nva --name customScript --publisher Microsoft.Azure.Extensions --settings '{\"commandToExecute\":\"sudo sysctl -w net.ipv4.ip_forward=1\"}'
+az vm extension set --resource-group $rg --vm-name vm-nva --name customScript --publisher Microsoft.Azure.Extensions --settings '{"commandToExecute":"sudo sysctl -w net.ipv4.ip_forward=1"}'
 
 ##############################
 ######## END - SCRIPT ########

@@ -46,7 +46,7 @@ az network vnet create --name "cake-spoke2-vnet-01" --resource-group $rg --locat
 
 
 ## CREATE THE VM IN THE HUB VNET
-az vm create --resource-group $rg --name "cake-hub-vm-01" --location $location --vnet-name "cake-hub-vnet-01" --subnet "hub-subnet-01" --image UbuntuLTS --admin-username azureuser --generate-ssh-keys
+az vm create --resource-group $rg --name "cake-hub-vm-01" --location $location --vnet-name "cake-hub-vnet-01" --subnet "hub-subnet-01" --image Ubuntu2204 --admin-username azureuser --generate-ssh-keys
 
 ## DELETE THE NSG THAT IS CREATED WITH THE VM AND ASSOCIATED WITH THE NIC BY DEFAULT
 $nicName = az vm show -n "cake-hub-vm-01" -g $rg --query 'networkProfile.networkInterfaces[0].id' -o tsv | cut -d'/' -f 9

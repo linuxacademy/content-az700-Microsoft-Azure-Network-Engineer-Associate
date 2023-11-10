@@ -50,8 +50,12 @@ az vm create --resource-group $rg --name hub-nva-vm --image Ubuntu2204 --generat
 
 az network nic update --name hub-nva-vmVMNic --resource-group $rg --ip-forwarding true
 
-az vm extension set --resource-group $rg --vm-name hub-nva-vm --name customScript --publisher Microsoft.Azure.Extensions --settings '{\"commandToExecute\":\"sudo sysctl -w net.ipv4.ip_forward=1\"}'
-
+#az vm extension set --resource-group $rg --vm-name hub-nva-vm --name customScript --publisher Microsoft.Azure.Extensions --settings '{\"commandToExecute\":\"sudo sysctl -w net.ipv4.ip_forward=1\"}'
+## PRINT OUT VM PUBLIC IP FOR STUDENTS TO USE
+$pip = az network public-ip show -n "cake-hub-vm-pip" -g $rg --query 'ipAddress' -o tsv
+echo "==============================================================="
+echo "The public IP address of the VM is: $pip"
+echo "==============================================================="
 ##############################
 ######## END - SCRIPT ########
 ##############################

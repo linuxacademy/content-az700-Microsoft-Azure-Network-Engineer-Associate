@@ -35,9 +35,9 @@ az network vnet create --name cake-hub-vnet --resource-group $rg --location $loc
 
 # Create two Linux machines. We will not need to interact with the machines, just generate IP/DNS info
 
-az vm create --resource-group $rg --name vm-1 --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-vm1 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --name vm-1 --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-vm1 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
 
-az vm create --resource-group $rg --name vm-2 --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-vm2 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
+az vm create --resource-group $rg --name vm-2 --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-vm2 --public-ip-sku Standard --vnet-name cake-hub-vnet --subnet hub-subnet-01 --size Standard_B1s --no-wait
 
 ##############################
 ######## END - SCRIPT ########

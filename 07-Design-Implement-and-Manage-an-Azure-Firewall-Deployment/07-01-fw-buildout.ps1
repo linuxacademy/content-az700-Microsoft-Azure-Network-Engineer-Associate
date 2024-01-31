@@ -111,8 +111,10 @@ $global:setConfig
 # Create AzureFirewallSubnet for spoke2-vnet
 az network vnet subnet create --resource-group $rg --vnet-name cake-spoke2-vnet --name AzureFirewallSubnet --address-prefix 172.32.1.0/26
 
-# Create cake-spoke2-firewall-01
-az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location
+# Create cake-spoke2-firewall-01 with Basic SKU for compatibility with the Azure Sandbox
+az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location --sku Basic
+# Note: If using your own AZure account you can use: 
+# the command `az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location` to create a Premium Firewall
 
 # Create Firewall PIP for cake-spoke2-firewall-01
 az network public-ip create --resource-group $rg --name cake-spoke2-firewall-pip-01 --location $location --allocation-method Static --sku Standard

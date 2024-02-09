@@ -112,7 +112,7 @@ $global:setConfig
 az network vnet subnet create --resource-group $rg --vnet-name cake-spoke2-vnet --name AzureFirewallSubnet --address-prefix 172.32.1.0/26
 
 # Create cake-spoke2-firewall-01 with Basic SKU for compatibility with the Azure Sandbox
-az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location --sku Basic
+az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location --sku AZFW_VNet --tier Basic
 # Note: If using your own AZure account you can use: 
 # the command `az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location` to create a Premium Firewall
 

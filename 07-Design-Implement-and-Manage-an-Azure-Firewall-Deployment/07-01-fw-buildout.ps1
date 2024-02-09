@@ -111,19 +111,26 @@ $global:setConfig
 # Create AzureFirewallSubnet for spoke2-vnet
 az network vnet subnet create --resource-group $rg --vnet-name cake-spoke2-vnet --name AzureFirewallSubnet --address-prefix 172.32.1.0/26
 
-# Create cake-spoke2-firewall-01 with Basic SKU for compatibility with the Azure Sandbox
-az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location --sku AZFW_VNet --tier Basic
-# Note: If using your own AZure account you can use: 
-# the command `az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location` to create a Premium Firewall
-
 # Create Firewall PIP for cake-spoke2-firewall-01
 az network public-ip create --resource-group $rg --name cake-spoke2-firewall-pip-01 --location $location --allocation-method Static --sku Standard
 
-# Create Firewall IP Config for cake-spoke2-firewall-01
-az network firewall ip-config create --resource-group $rg --firewall-name cake-spoke2-firewall-01 --name cake-spoke2-firewall-ip-config --public-ip-address cake-spoke2-firewall-pip-01 --vnet-name cake-spoke2-vnet
+# Create the management configuration and IP required for the basic SKU firewall
+az network vnet subnet create --name AzureFirewallManagementSubnet --resource-group $rg --vnet-name cake-spoke2-vnet --address-prefixes 172.32.2.0/26
 
-# Update the firewall to associate the IP config
-az network firewall update --resource-group $rg --name cake-spoke2-firewall-01
+az network public-ip create --name cake-fw-management-ip --resource-group $rg --allocation-method Static --sku Standard
+
+# Create cake-spoke2-firewall-01 with Basic SKU for compatibility with the Azure Sandbox
+az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location --sku AZFW_VNet --tier Basic --vnet-name cake-spoke2-vnet --conf-name fw-ip-config --public-ip cake-spoke2-firewall-pip-01 --m-conf-name management-ip-config --m-public-ip cake-fw-management-ip
+# Note: If using your own AZure account you can use: 
+# the command `az network firewall create --resource-group $rg --name cake-spoke2-firewall-01 --location $location` to create a Premium Firewall
+
+
+# Below commands commented out as they are redundant for basic SKU firewall
+# # Create Firewall IP Config for cake-spoke2-firewall-01
+# az network firewall ip-config create --resource-group $rg --firewall-name cake-spoke2-firewall-01 --name cake-spoke2-firewall-ip-config --public-ip-address cake-spoke2-firewall-pip-01 --vnet-name cake-spoke2-vnet
+
+# # Update the firewall to associate the IP config
+# az network firewall update --resource-group $rg --name cake-spoke2-firewall-01
 
 # Get firewall private IP address and set to variable for reuse
 $hubfwprivip = az network firewall show --resource-group $rg --name cake-spoke2-firewall-01 --query "ipConfigurations[0].privateIPAddress" --output tsv
@@ -132,7 +139,7 @@ $hubfwprivip = az network firewall show --resource-group $rg --name cake-spoke2-
 az network route-table create --resource-group $rg --name cake-spoke2-fw-route-table --location $location --disable-bgp-route-propagation true
 
 # Create the route that will push traffic from cake-spoke2-vnet associated subnets to cake-spoke2-firewall-01
-az network route-table route create --resource-group $rg --route-table-name cake-spoke2-fw-route-table --name cake-spoke2-fw-route --address-prefixes 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $hubfwprivip
+az network route-table route create --resource-group $rg --route-table-name cake-spoke2-fw-route-table --name cake-spoke2-fw-route --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $hubfwprivip
 
 # Associate the route table with the cake-spoke2-vnet spoke2-subnet-01
 az network vnet subnet update --resource-group $rg --vnet-name cake-spoke2-vnet --name spoke2-subnet-01 --route-table cake-spoke2-fw-route-table --address-prefixes 172.32.0.0/24

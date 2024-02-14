@@ -1,6 +1,13 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.25.53.49325",
+      "templateHash": "1946752678390945409"
+    }
+  },
   "parameters": {
     "adminUsername": {
       "type": "string",
@@ -15,8 +22,22 @@
       }
     }
   },
-  "functions": [],
   "variables": {
+    "copy": [
+      {
+        "name": "azureFirewallIpConfigurations",
+        "count": "[length(range(0, variables('numOfFwPIPAddresses')))]",
+        "input": {
+          "name": "[format('IpConf{0}', range(0, variables('numOfFwPIPAddresses'))[copyIndex('azureFirewallIpConfigurations')])]",
+          "properties": {
+            "subnet": "[if(equals(range(0, variables('numOfFwPIPAddresses'))[copyIndex('azureFirewallIpConfigurations')], 0), variables('azureFirewallSubnetJSON'), json('null'))]",
+            "publicIPAddress": {
+              "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('fwPIPPrefix'), add(range(0, variables('numOfFwPIPAddresses'))[copyIndex('azureFirewallIpConfigurations')], 1)))]"
+            }
+          }
+        }
+      }
+    ],
     "location": "[resourceGroup().location]",
     "hubVNetName": "cake-hub-vnet-01",
     "hubVNetMainSubnetName": "hub-subnet-01",
@@ -26,6 +47,8 @@
     "bastionPublicIpName": "cake-bastion-public-ip-01",
     "bastionSubnetName": "AzureBastionSubnet",
     "bastionSubnetPrefix": "10.60.1.0/27",
+    "firewallManagementSubnetName": "AzureFirewallManagementSubnet",
+    "firewallManagementSubnetPrefix": "10.60.3.0/26",
     "firewallSubnetName": "AzureFirewallSubnet",
     "firewallSubnetPrefix": "10.60.2.0/26",
     "spokeVNetName": "cake-spoke-vnet-01",
@@ -35,23 +58,8 @@
     "fwName": "cake-hub-fw",
     "fwPIPPrefix": "hub-fw-pip-",
     "numOfFwPIPAddresses": 1,
-    "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('hubVNetName'), variables('firewallSubnetName'))]",
+    "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('firewallSubnetName'))]",
     "azureFirewallSubnetJSON": "[json(format('{{\"id\": \"{0}\"}}', variables('azureFirewallSubnetId')))]",
-    "copy": [
-      {
-        "name": "azureFirewallIpConfigurations",
-        "count": "[variables('numOfFwPIPAddresses')]",
-        "input": {
-          "name": "[concat('IpConf', copyIndex('azureFirewallIpConfigurations'))]",
-          "properties": {
-            "subnet": "[if(equals(copyIndex('azureFirewallIpConfigurations'), 0), variables('azureFirewallSubnetJSON'), json('null'))]",
-            "publicIPAddress": {
-              "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('fwPIPPrefix'), add(copyIndex('azureFirewallIpConfigurations'), 1)))]"
-            }
-          }
-        }
-      }
-    ],
     "hubVmName": "cake-hub-vm-01",
     "vmSize": "standard_b2s",
     "spokeVmName": "cake-spoke-vm-01",
@@ -63,11 +71,12 @@
       "apiVersion": "2020-06-01",
       "name": "[variables('hubVNetName')]",
       "location": "[variables('location')]",
-      "dependsOn": [],
       "tags": {},
       "properties": {
         "addressSpace": {
-          "addressPrefixes": ["[variables('hubVNetPrefix')]"]
+          "addressPrefixes": [
+            "[variables('hubVNetPrefix')]"
+          ]
         },
         "subnets": [
           {
@@ -87,20 +96,27 @@
             "properties": {
               "addressPrefix": "[variables('firewallSubnetPrefix')]"
             }
+          },
+          {
+            "name": "[variables('firewallManagementSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('firewallManagementSubnetPrefix')]"
+            }
           }
         ]
       }
     },
     {
-      "name": "[variables('spokeVNetName')]",
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2020-11-01",
+      "name": "[variables('spokeVNetName')]",
       "location": "[variables('location')]",
-      "dependsOn": [],
       "tags": {},
       "properties": {
         "addressSpace": {
-          "addressPrefixes": ["[variables('spokeVNetPrefix')]"]
+          "addressPrefixes": [
+            "[variables('spokeVNetPrefix')]"
+          ]
         },
         "subnets": [
           {
@@ -113,52 +129,52 @@
       }
     },
     {
-      "name": "[concat(variables('hubVNetName'),'/peering-to-',variables('spokeVNetName'))]",
       "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
       "apiVersion": "2020-05-01",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
-      ],
+      "name": "[format('{0}/{1}', variables('hubVNetName'), format('peering-to-{0}', variables('spokeVNetName')))]",
       "properties": {
         "allowVirtualNetworkAccess": true,
         "allowForwardedTraffic": false,
         "allowGatewayTransit": false,
         "useRemoteGateways": false,
         "remoteVirtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('spokeVNetName'))]"
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
         }
-      }
-    },
-    {
-      "name": "[concat(variables('spokeVNetName'),'/peering-to-',variables('hubVNetName'))]",
-      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "apiVersion": "2020-05-01",
+      },
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
-      ],
+      ]
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2020-05-01",
+      "name": "[format('{0}/{1}', variables('spokeVNetName'), format('peering-to-{0}', variables('hubVNetName')))]",
       "properties": {
         "allowVirtualNetworkAccess": true,
         "allowForwardedTraffic": false,
         "allowGatewayTransit": false,
         "useRemoteGateways": false,
         "remoteVirtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('hubVNetName'))]"
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ]
     },
     {
+      "copy": {
+        "name": "fwPIPPrefix_1",
+        "count": "[length(range(0, variables('numOfFwPIPAddresses')))]"
+      },
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2020-06-01",
-      "name": "[concat(variables('fwPIPPrefix'), add(copyIndex(), 1))]",
+      "name": "[concat(variables('fwPIPPrefix'), add(range(0, variables('numOfFwPIPAddresses'))[copyIndex()], 1))]",
       "location": "[variables('location')]",
       "sku": {
         "name": "Standard"
-      },
-      "copy": {
-        "name": "publicIpCopy",
-        "count": "[variables('numOfFwPIPAddresses')]"
       },
       "properties": {
         "publicIPAllocationMethod": "Static",
@@ -166,25 +182,51 @@
       }
     },
     {
-      "apiVersion": "2020-04-01",
-      "type": "Microsoft.Network/azureFirewalls",
-      "name": "[variables('fwName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-06-01",
+      "name": "pip-fwmgmt-01",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
-      ],
+      "sku": {
+        "name": "Standard"
+      },
       "properties": {
-        "ipConfigurations": "[variables('azureFirewallIpConfigurations')]"
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4"
       }
     },
     {
-      "name": "[concat(variables('hubVmName'), '-nic')]",
+      "type": "Microsoft.Network/azureFirewalls",
+      "apiVersion": "2020-04-01",
+      "name": "[variables('fwName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "sku": {
+          "name": "AZFW_VNet",
+          "tier": "Basic"
+        },
+        "ipConfigurations": "[variables('azureFirewallIpConfigurations')]",
+        "managementIpConfiguration": {
+          "name": "mngipconf",
+          "properties": {
+            "publicIPAddress": {
+              "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'pip-fwmgmt-01')]"
+            },
+            "subnet": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('firewallManagementSubnetName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', 'pip-fwmgmt-01')]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ]
+    },
+    {
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2020-11-01",
+      "name": "[format('{0}-nic', variables('hubVmName'))]",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
-      ],
       "tags": {},
       "properties": {
         "ipConfigurations": [
@@ -199,18 +241,20 @@
           }
         ],
         "dnsSettings": {
-          "dnsServers": ["[variables('dnsServer')]"]
+          "dnsServers": [
+            "[variables('dnsServer')]"
+          ]
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVNetName'))]"
+      ]
     },
     {
-      "name": "[variables('hubVmName')]",
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2021-03-01",
+      "name": "[variables('hubVmName')]",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('hubVmName'), '-nic'))]"
-      ],
       "tags": {},
       "properties": {
         "hardwareProfile": {
@@ -229,7 +273,7 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "[concat(variables('hubVmName'), '-osdisk')]",
+            "name": "[format('{0}-osdisk', variables('hubVmName'))]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           }
@@ -237,7 +281,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('hubVmName'), '-nic'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic', variables('hubVmName')))]"
             }
           ]
         },
@@ -246,16 +290,16 @@
             "enabled": false
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic', variables('hubVmName')))]"
+      ]
     },
     {
-      "name": "[concat(variables('spokeVmName'), '-nic')]",
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2020-11-01",
+      "name": "[format('{0}-nic', variables('spokeVmName'))]",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
-      ],
       "tags": {},
       "properties": {
         "ipConfigurations": [
@@ -270,18 +314,20 @@
           }
         ],
         "dnsSettings": {
-          "dnsServers": ["[variables('dnsServer')]"]
+          "dnsServers": [
+            "[variables('dnsServer')]"
+          ]
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVNetName'))]"
+      ]
     },
     {
-      "name": "[variables('spokeVmName')]",
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2021-03-01",
+      "name": "[variables('spokeVmName')]",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('spokeVmName'), '-nic'))]"
-      ],
       "tags": {},
       "properties": {
         "hardwareProfile": {
@@ -300,7 +346,7 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "[concat(variables('spokeVmName'), '-osdisk')]",
+            "name": "[format('{0}-osdisk', variables('spokeVmName'))]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           }
@@ -308,7 +354,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('spokeVmName'), '-nic'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic', variables('spokeVmName')))]"
             }
           ]
         },
@@ -317,11 +363,14 @@
             "enabled": false
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic', variables('spokeVmName')))]"
+      ]
     },
     {
+      "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2019-02-01",
-      "type": "Microsoft.Network/publicIpAddresses",
       "name": "[variables('bastionPublicIpName')]",
       "location": "[resourceGroup().location]",
       "sku": {
@@ -333,13 +382,10 @@
       "tags": {}
     },
     {
-      "apiVersion": "2019-09-01",
       "type": "Microsoft.Network/bastionHosts",
+      "apiVersion": "2019-09-01",
       "name": "[variables('bastionName')]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
-      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -349,14 +395,16 @@
                 "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('bastionSubnetName'))]"
               },
               "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastionPublicIpName'))]"
               }
             }
           }
         ]
       },
-      "tags": {}
+      "tags": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastionPublicIpName'))]"
+      ]
     }
-  ],
-  "outputs": {}
+  ]
 }

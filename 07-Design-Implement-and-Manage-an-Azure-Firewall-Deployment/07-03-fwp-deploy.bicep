@@ -19,6 +19,8 @@ var bastionName = 'cake-bastion-01'
 var bastionPublicIpName = 'cake-bastion-public-ip-01'
 var bastionSubnetName = 'AzureBastionSubnet'
 var bastionSubnetPrefix = '10.60.1.0/27'
+var firewallManagementSubnetName = 'AzureFirewallManagementSubnet'
+var firewallManagementSubnetPrefix = '10.60.3.0/26'
 var firewallSubnetName = 'AzureFirewallSubnet'
 var firewallSubnetPrefix = '10.60.2.0/26'
 var spokeVNetName = 'cake-spoke-vnet-01'
@@ -100,6 +102,12 @@ resource hubVNet 'Microsoft.Network/virtualNetworks@2020-06-01' = {
           addressPrefix: firewallSubnetPrefix
         }
       }
+      {
+        name: firewallManagementSubnetName
+        properties: {
+          addressPrefix: firewallManagementSubnetPrefix
+        }
+      }
     ]
   }
 }
@@ -168,11 +176,38 @@ resource fwPIPPrefix 'Microsoft.Network/publicIPAddresses@2020-06-01' = [
   }
 ]
 
+resource pip_fwmgmt_01 'Microsoft.Network/publicIPAddresses@2020-06-01' = {
+  name: 'pip-fwmgmt-01'
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+    publicIPAddressVersion: 'IPv4'
+  }
+}
+
 resource fw 'Microsoft.Network/azureFirewalls@2020-04-01' = {
   name: fwName
   location: location
   properties: {
     ipConfigurations: azureFirewallIpConfigurations
+    managementIpConfiguration: {
+      name: 'mngipconf'
+      properties: {
+        publicIPAddress: {
+          id: pip_fwmgmt_01.id
+        }
+        subnet: {
+          id: resourceId(
+            'Microsoft.Network/virtualNetworks/subnets',
+            hubVNetName,
+            firewallManagementSubnetName
+          )
+        }
+      }
+    }
     networkRuleCollections: [
       {
         name: 'netcollection'

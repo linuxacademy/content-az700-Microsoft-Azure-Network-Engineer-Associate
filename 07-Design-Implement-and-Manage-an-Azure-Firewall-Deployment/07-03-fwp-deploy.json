@@ -31,6 +31,8 @@
     "bastionPublicIpName": "cake-bastion-public-ip-01",
     "bastionSubnetName": "AzureBastionSubnet",
     "bastionSubnetPrefix": "10.60.1.0/27",
+    "firewallManagementSubnetName": "AzureFirewallManagementSubnet",
+    "firewallManagementSubnetPrefix": "10.60.3.0/26",
     "firewallSubnetName": "AzureFirewallSubnet",
     "firewallSubnetPrefix": "10.60.2.0/26",
     "spokeVNetName": "cake-spoke-vnet-01",
@@ -95,7 +97,7 @@
       "tags": {},
       "properties": {
         "addressSpace": {
-          "addressPrefixes": ["[variables('hubVNetPrefix')]"]
+          "addressPrefixes": [ "[variables('hubVNetPrefix')]" ]
         },
         "subnets": [
           {
@@ -118,6 +120,12 @@
             "properties": {
               "addressPrefix": "[variables('firewallSubnetPrefix')]"
             }
+          },
+          {
+            "name": "[variables('firewallManagementSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('firewallManagementSubnetPrefix')]"
+            }
           }
         ]
       }
@@ -133,7 +141,7 @@
       "tags": {},
       "properties": {
         "addressSpace": {
-          "addressPrefixes": ["[variables('spokeVNetPrefix')]"]
+          "addressPrefixes": [ "[variables('spokeVNetPrefix')]" ]
         },
         "subnets": [
           {
@@ -202,6 +210,19 @@
       }
     },
     {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-06-01",
+      "name": "pip-fwmgmt-01",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4"
+      }
+    },
+    {
       "apiVersion": "2020-04-01",
       "type": "Microsoft.Network/azureFirewalls",
       "name": "[variables('fwName')]",
@@ -211,6 +232,17 @@
       ],
       "properties": {
         "ipConfigurations": "[variables('azureFirewallIpConfigurations')]",
+        "managementIpConfiguration": {
+          "name": "mngipconf",
+          "properties": {
+            "publicIPAddress": {
+              "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'pip-fwmgmt-01')]"
+            },
+            "subnet": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVNetName'), variables('firewallManagementSubnetName'))]"
+            }
+          }
+        },
         "networkRuleCollections": [
           {
             "name": "netcollection",
@@ -222,13 +254,13 @@
               "rules": [
                 {
                   "name": "googledns",
-                  "protocols": ["UDP"],
-                  "sourceAddresses": ["10.60.0.0/24"],
-                  "destinationAddresses": ["8.8.8.8"],
+                  "protocols": [ "UDP" ],
+                  "sourceAddresses": [ "10.60.0.0/24" ],
+                  "destinationAddresses": [ "8.8.8.8" ],
                   "sourceIpGroups": [],
                   "destinationIpGroups": [],
                   "destinationFqdns": [],
-                  "destinationPorts": ["53"]
+                  "destinationPorts": [ "53" ]
                 }
               ]
             }
@@ -256,8 +288,8 @@
                     }
                   ],
                   "fqdnTags": [],
-                  "targetFqdns": ["www.microsoft.com"],
-                  "sourceAddresses": ["10.60.0.0/24"],
+                  "targetFqdns": [ "www.microsoft.com" ],
+                  "sourceAddresses": [ "10.60.0.0/24" ],
                   "sourceIpGroups": []
                 }
               ]
@@ -284,7 +316,7 @@
       "name": "[variables('googleDNSServersIPGroupName')]",
       "location": "[variables('location')]",
       "properties": {
-        "ipAddresses": ["[variables('googleDNSServers')]"]
+        "ipAddresses": [ "[variables('googleDNSServers')]" ]
       }
     },
     {
@@ -309,7 +341,7 @@
           }
         ],
         "dnsSettings": {
-          "dnsServers": ["[variables('googleDNSServers')]"]
+          "dnsServers": [ "[variables('googleDNSServers')]" ]
         }
       }
     },
@@ -380,7 +412,7 @@
           }
         ],
         "dnsSettings": {
-          "dnsServers": ["[variables('googleDNSServers')]"]
+          "dnsServers": [ "[variables('googleDNSServers')]" ]
         }
       }
     },

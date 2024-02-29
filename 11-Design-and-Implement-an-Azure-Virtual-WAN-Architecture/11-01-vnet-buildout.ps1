@@ -38,9 +38,9 @@ az network vnet create --name spoke-2-vnet --resource-group $rg --location $loca
 
 # Create two Linux machines. One in each network
 
-az vm create --resource-group $rg --name spoke-1-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-nva --public-ip-sku Standard --vnet-name spoke-1-vnet --subnet spoke-1-subnet-a --size Standard_B1s
+az vm create --resource-group $rg --name spoke-1-vm --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-nva --public-ip-sku Standard --vnet-name spoke-1-vnet --subnet spoke-1-subnet-a --size Standard_B1s
 
-az vm create --resource-group $rg --name spoke-2-vm --image UbuntuLTS --generate-ssh-keys --public-ip-address myPublicIP-spoke-2-vm --public-ip-sku Standard --vnet-name spoke-2-vnet --subnet spoke-2-subnet-a --size Standard_B1s
+az vm create --resource-group $rg --name spoke-2-vm --image Ubuntu2204 --generate-ssh-keys --public-ip-address myPublicIP-spoke-2-vm --public-ip-sku Standard --vnet-name spoke-2-vnet --subnet spoke-2-subnet-a --size Standard_B1s
 
 
 # Add rules to default NIC NSGs to allow ICMP
